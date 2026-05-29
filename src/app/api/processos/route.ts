@@ -6,6 +6,7 @@ import {
   updateSheet,
   findProcessoRow,
   getFichaById,
+  findFichaRow,
 } from '@/lib/google-sheets';
 import { v4 as uuidv4 } from 'uuid';
 

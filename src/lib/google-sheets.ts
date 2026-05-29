@@ -1,18 +1,18 @@
-import { google } from 'googleapis';
-import { Ficha, Processo, StatusLog } from '@/types';
+import { google, sheets_v4, drive_v3 } from 'googleapis';
+import { Ficha, Processo } from '@/types';
 
-let sheetInstance: any = null;
-let driveInstance: any = null;
+let sheetInstance: sheets_v4.Sheets | null = null;
+let driveInstance: drive_v3.Drive | null = null;
 
 const CACHE_TTL = 30 * 1000; // 30 segundos
-const cache = new Map<string, { data: any[][]; timestamp: number }>();
-const inflightRequests = new Map<string, Promise<any[][]>>();
+const cache = new Map<string, { data: string[][]; timestamp: number }>();
+const inflightRequests = new Map<string, Promise<string[][]>>();
 
 export function clearCache() {
   cache.clear();
 }
 
-export async function getGoogleSheets() {
+export async function getGoogleSheets(): Promise<sheets_v4.Sheets> {
   if (sheetInstance) return sheetInstance;
 
   const auth = new google.auth.GoogleAuth({
@@ -27,7 +27,7 @@ export async function getGoogleSheets() {
   return sheetInstance;
 }
 
-export async function getGoogleDrive() {
+export async function getGoogleDrive(): Promise<drive_v3.Drive> {
   if (driveInstance) return driveInstance;
 
   const auth = new google.auth.GoogleAuth({
@@ -50,7 +50,7 @@ export function getDriveFolderId() {
   return process.env.GOOGLE_DRIVE_FOLDER_ID || '';
 }
 
-export async function getSheetData(range: string): Promise<any[][]> {
+export async function getSheetData(range: string): Promise<string[][]> {
   const now = Date.now();
   const cached = cache.get(range);
 
@@ -73,7 +73,7 @@ export async function getSheetData(range: string): Promise<any[][]> {
         range,
       });
 
-      const values = response.data.values || [];
+      const values = (response.data.values as string[][]) || [];
       cache.set(range, { data: values, timestamp: Date.now() });
       return values;
     } finally {
@@ -87,7 +87,7 @@ export async function getSheetData(range: string): Promise<any[][]> {
 
 export async function appendToSheet(
   range: string,
-  values: any[][]
+  values: (string | number | boolean) [][]
 ): Promise<void> {
   const sheets = await getGoogleSheets();
   const spreadsheetId = getSpreadsheetId();
@@ -104,7 +104,7 @@ export async function appendToSheet(
 
 export async function updateSheet(
   range: string,
-  values: any[][]
+  values: (string | number | boolean) [][]
 ): Promise<void> {
   const sheets = await getGoogleSheets();
   const spreadsheetId = getSpreadsheetId();
@@ -124,7 +124,7 @@ export async function getAllFichas(): Promise<Ficha[]> {
   
   if (data.length <= 1) return [];
 
-  return data.slice(1).map((row: any[]) => ({
+  return data.slice(1).map((row: string[]) => ({
     id: row[0] || '',
     codigo: row[1] || '',
     descricao: row[2] || '',
@@ -139,14 +139,14 @@ export async function getAllProcessos(): Promise<Processo[]> {
   
   if (data.length <= 1) return [];
 
-  return data.slice(1).map((row: any[]) => ({
+  return data.slice(1).map((row: string[]) => ({
     id: row[0] || '',
     numero: row[1] || '',
     objeto: row[2] || '',
     fornecedor: row[3] || '',
     valor: parseFloat(row[4]) || 0,
     ficha_id: row[5] || '',
-    status: row[6] || 'aprovado',
+    status: (row[6] as 'aprovado' | 'empenhado' | 'liquidado') || 'aprovado',
     data_emissao: row[7] || '',
     data_pagamento: row[8] || '',
     responsavel: row[9] || '',
@@ -168,19 +168,19 @@ export async function getProcessoById(id: string): Promise<Processo | null> {
 
 export async function findFichaRow(id: string): Promise<number | null> {
   const data = await getSheetData('Fichas!A:A');
-  const rowIndex = data.findIndex((row: any[]) => row[0] === id);
+  const rowIndex = data.findIndex((row: string[]) => row[0] === id);
   return rowIndex > 0 ? rowIndex + 1 : null;
 }
 
 export async function findProcessoRow(id: string): Promise<number | null> {
   const data = await getSheetData('Processos!A:A');
-  const rowIndex = data.findIndex((row: any[]) => row[0] === id);
+  const rowIndex = data.findIndex((row: string[]) => row[0] === id);
   return rowIndex > 0 ? rowIndex + 1 : null;
 }
 
 export async function getSaldoConta(): Promise<number> {
   const data = await getSheetData('Config!A:B');
-  const saldoRow = data.find((row: any[]) => row[0] === 'saldo_conta_inicial');
+  const saldoRow = data.find((row: string[]) => row[0] === 'saldo_conta_inicial');
   return saldoRow ? parseFloat(saldoRow[1]) || 0 : 0;
 }
 
@@ -189,7 +189,7 @@ export async function updateSaldoConta(valor: number): Promise<void> {
   const spreadsheetId = getSpreadsheetId();
   
   const data = await getSheetData('Config!A:B');
-  const rowIndex = data.findIndex((row: any[]) => row[0] === 'saldo_conta_inicial');
+  const rowIndex = data.findIndex((row: string[]) => row[0] === 'saldo_conta_inicial');
   
   if (rowIndex >= 0) {
     await sheets.spreadsheets.values.update({
