@@ -9,21 +9,22 @@ export async function GET() {
       getSaldoConta(),
     ]);
 
-    const totalAprovados = processos
-      .filter(p => p.status === 'aprovado')
-      .reduce((sum, p) => sum + p.valor, 0);
+    let totalAprovados = 0;
+    let totalEmpenhados = 0;
+    let totalLiquidados = 0;
 
-    const totalEmpenhados = processos
-      .filter(p => p.status === 'empenhado')
-      .reduce((sum, p) => sum + p.valor, 0);
+    // Redução do número de iterações sobre o array de processos de 4 para 1.
+    for (const p of processos) {
+      if (p.status === 'aprovado') {
+        totalAprovados += p.valor;
+      } else if (p.status === 'empenhado') {
+        totalEmpenhados += p.valor;
+      } else if (p.status === 'liquidado') {
+        totalLiquidados += p.valor;
+      }
+    }
 
-    const totalLiquidados = processos
-      .filter(p => p.status === 'liquidado')
-      .reduce((sum, p) => sum + p.valor, 0);
-
-    const restosAPagar = processos
-      .filter(p => ['aprovado', 'empenhado'].includes(p.status))
-      .reduce((sum, p) => sum + p.valor, 0);
+    const restosAPagar = totalAprovados + totalEmpenhados;
 
     const saldoDisponivel = saldoConta - (totalAprovados + totalEmpenhados + totalLiquidados);
 
