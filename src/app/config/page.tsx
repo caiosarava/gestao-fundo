@@ -7,6 +7,22 @@ export default function ConfigPage() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState('');
 
+  useEffect(() => {
+    const fetchSaldo = async () => {
+      try {
+        const res = await fetch('/api/saldo-conta');
+        const data = await res.json();
+        setSaldo(data.saldo);
+        setFormData(data.saldo.toString());
+        setLoading(false);
+      } catch (error) {
+        console.error('Erro:', error);
+        setLoading(false);
+      }
+    };
+    fetchSaldo();
+  }, []);
+
   const fetchSaldo = async () => {
     try {
       const res = await fetch('/api/saldo-conta');
@@ -19,10 +35,6 @@ export default function ConfigPage() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    fetchSaldo();
-  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -131,7 +143,7 @@ export default function ConfigPage() {
 
       <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 max-w-2xl">
         <h3 className="text-lg font-semibold text-blue-900 mb-2">
-          ℹ️ Sobre o Sistema
+          <span aria-hidden="true">ℹ️</span> Sobre o Sistema
         </h3>
         <p className="text-sm text-blue-800">
           Sistema de Gestão do Fundo Municipal de Economia Solidária.

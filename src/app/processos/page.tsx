@@ -163,9 +163,6 @@ export default function ProcessosPage() {
     }).format(value);
   };
 
-  const formatDate = (dateString: string) => {
-    return new Date(dateString).toLocaleDateString('pt-BR');
-  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -205,7 +202,7 @@ export default function ProcessosPage() {
             onClick={() => handleExport('xlsx')}
             className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
           >
-            📊 Exportar Excel
+            <span aria-hidden="true">📊</span> Exportar Excel
           </button>
           <button
             onClick={() => setShowForm(!showForm)}
@@ -222,10 +219,11 @@ export default function ProcessosPage() {
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="numero" className="block text-sm font-medium text-gray-700 mb-1">
                   Número do Processo
                 </label>
                 <input
+                  id="numero"
                   type="text"
                   value={formData.numero}
                   onChange={(e) =>
@@ -236,10 +234,11 @@ export default function ProcessosPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="ficha_id" className="block text-sm font-medium text-gray-700 mb-1">
                   Ficha de Despesa
                 </label>
                 <select
+                  id="ficha_id"
                   value={formData.ficha_id}
                   onChange={(e) =>
                     setFormData({ ...formData, ficha_id: e.target.value })
@@ -258,10 +257,11 @@ export default function ProcessosPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="objeto" className="block text-sm font-medium text-gray-700 mb-1">
                 Objeto
               </label>
               <input
+                id="objeto"
                 type="text"
                 value={formData.objeto}
                 onChange={(e) =>
@@ -275,10 +275,11 @@ export default function ProcessosPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 mb-1">
                   Fornecedor
                 </label>
                 <input
+                  id="fornecedor"
                   type="text"
                   value={formData.fornecedor}
                   onChange={(e) =>
@@ -289,10 +290,11 @@ export default function ProcessosPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-1">
                   Valor (R$)
                 </label>
                 <input
+                  id="valor"
                   type="number"
                   step="0.01"
                   value={formData.valor}
@@ -307,10 +309,11 @@ export default function ProcessosPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
                   Status
                 </label>
                 <select
+                  id="status"
                   value={formData.status}
                   onChange={(e) =>
                     setFormData({
@@ -329,10 +332,11 @@ export default function ProcessosPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="responsavel" className="block text-sm font-medium text-gray-700 mb-1">
                   Responsável
                 </label>
                 <input
+                  id="responsavel"
                   type="text"
                   value={formData.responsavel}
                   onChange={(e) =>
@@ -346,10 +350,11 @@ export default function ProcessosPage() {
 
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="data_emissao" className="block text-sm font-medium text-gray-700 mb-1">
                   Data de Emissão
                 </label>
                 <input
+                  id="data_emissao"
                   type="date"
                   value={formData.data_emissao}
                   onChange={(e) =>
@@ -360,10 +365,11 @@ export default function ProcessosPage() {
                 />
               </div>
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">
+                <label htmlFor="data_pagamento" className="block text-sm font-medium text-gray-700 mb-1">
                   Data de Pagamento
                 </label>
                 <input
+                  id="data_pagamento"
                   type="date"
                   value={formData.data_pagamento}
                   onChange={(e) =>
@@ -378,10 +384,11 @@ export default function ProcessosPage() {
             </div>
 
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="anexos" className="block text-sm font-medium text-gray-700 mb-1">
                 Anexos (opcional)
               </label>
               <input
+                id="anexos"
                 type="file"
                 onChange={handleFileUpload}
                 disabled={uploading}
@@ -392,7 +399,7 @@ export default function ProcessosPage() {
                 <div className="mt-2 space-y-1">
                   {anexos.map((anexo, idx) => (
                     <p key={idx} className="text-sm text-green-600">
-                      📎 {anexo.name}
+                      <span aria-hidden="true">📎</span> {anexo.name}
                     </p>
                   ))}
                 </div>
@@ -490,7 +497,7 @@ export default function ProcessosPage() {
                   <td className="px-6 py-4 text-sm">
                     {processo.anexos.length > 0 && (
                       <span className="text-gray-600">
-                        📎 {processo.anexos.length} arquivo(s)
+                        <span aria-hidden="true">📎</span> {processo.anexos.length} arquivo(s)
                       </span>
                     )}
                   </td>

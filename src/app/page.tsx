@@ -26,7 +26,7 @@ export default function DashboardPage() {
   if (loading) {
     return (
       <div className="flex items-center justify-center h-64">
-        <div className="text-gray-500">Carregando...</div>
+        <div className="text-gray-500" role="status">Carregando...</div>
       </div>
     );
   }
@@ -116,7 +116,7 @@ export default function DashboardPage() {
                   {formatCurrency(card.value)}
                 </p>
               </div>
-              <span className="text-4xl">{card.icon}</span>
+              <span className="text-4xl" aria-hidden="true">{card.icon}</span>
             </div>
           </div>
         ))}
@@ -169,7 +169,7 @@ export default function DashboardPage() {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">✅</span>
+                <span className="text-2xl" aria-hidden="true">✅</span>
                 <span className="text-gray-700">Aprovados</span>
               </div>
               <span className="font-semibold text-green-600">
@@ -178,7 +178,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">🔒</span>
+                <span className="text-2xl" aria-hidden="true">🔒</span>
                 <span className="text-gray-700">Empenhados</span>
               </div>
               <span className="font-semibold text-yellow-600">
@@ -187,7 +187,7 @@ export default function DashboardPage() {
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
-                <span className="text-2xl">✔️</span>
+                <span className="text-2xl" aria-hidden="true">✔️</span>
                 <span className="text-gray-700">Liquidados</span>
               </div>
               <span className="font-semibold text-blue-600">
@@ -197,7 +197,7 @@ export default function DashboardPage() {
             <div className="border-t pt-4">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
-                  <span className="text-2xl">⏳</span>
+                  <span className="text-2xl" aria-hidden="true">⏳</span>
                   <span className="text-gray-700 font-medium">
                     Restos a Pagar
                   </span>

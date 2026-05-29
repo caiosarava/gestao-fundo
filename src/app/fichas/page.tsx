@@ -96,10 +96,11 @@ export default function FichasPage() {
           <h3 className="text-lg font-semibold mb-4">Nova Ficha</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="codigo" className="block text-sm font-medium text-gray-700 mb-1">
                 Código
               </label>
               <input
+                id="codigo"
                 type="text"
                 value={formData.codigo}
                 onChange={(e) =>
@@ -111,10 +112,11 @@ export default function FichasPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
                 Descrição
               </label>
               <input
+                id="descricao"
                 type="text"
                 value={formData.descricao}
                 onChange={(e) =>
@@ -126,10 +128,11 @@ export default function FichasPage() {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="saldo_inicial" className="block text-sm font-medium text-gray-700 mb-1">
                 Saldo Inicial
               </label>
               <input
+                id="saldo_inicial"
                 type="number"
                 step="0.01"
                 value={formData.saldo_inicial}
