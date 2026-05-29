@@ -5,3 +5,7 @@
 ## 2025-05-29 - Single-pass Data Aggregation
 **Learning:** Even with small datasets, reducing the number of iterations over large arrays (like filter/reduce chains) in API routes reduces CPU overhead and GC pressure.
 **Action:** Prefer a single `for...of` loop over multiple `filter().reduce()` calls for aggregating data into multiple categories.
+
+## 2026-05-29 - Google Sheets API Batch Fetching
+**Learning:** Fetching multiple ranges from Google Sheets in a single `batchGet` call significantly reduces cumulative network latency and the risk of hitting rate limits, especially on dashboard-like views.
+**Action:** Use `getBatchSheetData` to consolidate requests for disparate data ranges in a single API round-trip.

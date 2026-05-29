@@ -12,13 +12,31 @@ export function clearCache() {
   cache.clear();
 }
 
+function validateEnv() {
+  const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
+  const key = process.env.GOOGLE_PRIVATE_KEY;
+  const sheetId = process.env.GOOGLE_SHEET_ID;
+
+  if (!email || !key || !sheetId) {
+    const missing = [];
+    if (!email) missing.push('GOOGLE_SERVICE_ACCOUNT_EMAIL');
+    if (!key) missing.push('GOOGLE_PRIVATE_KEY');
+    if (!sheetId) missing.push('GOOGLE_SHEET_ID');
+
+    throw new Error(`Variáveis de ambiente ausentes: ${missing.join(', ')}`);
+  }
+  return { email, key: key.replace(/\\n/g, '\n'), sheetId };
+}
+
 export async function getGoogleSheets(): Promise<sheets_v4.Sheets> {
   if (sheetInstance) return sheetInstance;
 
+  const { email, key } = validateEnv();
+
   const auth = new google.auth.GoogleAuth({
     credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      client_email: email,
+      private_key: key,
     },
     scopes: ['https://www.googleapis.com/auth/spreadsheets'],
   });
@@ -30,10 +48,12 @@ export async function getGoogleSheets(): Promise<sheets_v4.Sheets> {
 export async function getGoogleDrive(): Promise<drive_v3.Drive> {
   if (driveInstance) return driveInstance;
 
+  const { email, key } = validateEnv();
+
   const auth = new google.auth.GoogleAuth({
     credentials: {
-      client_email: process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL,
-      private_key: process.env.GOOGLE_PRIVATE_KEY?.replace(/\\n/g, '\n'),
+      client_email: email,
+      private_key: key,
     },
     scopes: ['https://www.googleapis.com/auth/drive.file'],
   });
@@ -83,6 +103,49 @@ export async function getSheetData(range: string): Promise<string[][]> {
 
   inflightRequests.set(range, fetchPromise);
   return fetchPromise;
+}
+
+/**
+ * Busca múltiplos intervalos de dados em uma única chamada de API (Batch).
+ * Reduz a latência de rede e evita atingir limites de cota da API.
+ */
+export async function getBatchSheetData(ranges: string[]): Promise<Map<string, string[][]>> {
+  const now = Date.now();
+  const results = new Map<string, string[][]>();
+  const rangesToFetch: string[] = [];
+
+  for (const range of ranges) {
+    const cached = cache.get(range);
+    if (cached && now - cached.timestamp < CACHE_TTL) {
+      results.set(range, cached.data);
+    } else {
+      rangesToFetch.push(range);
+    }
+  }
+
+  if (rangesToFetch.length === 0) {
+    return results;
+  }
+
+  // Por simplicidade na primeira iteração de batching, não usamos inflightRequests para o lote todo,
+  // mas o cache individual ainda será respeitado e preenchido.
+  const sheets = await getGoogleSheets();
+  const spreadsheetId = getSpreadsheetId();
+
+  const response = await sheets.spreadsheets.values.batchGet({
+    spreadsheetId,
+    ranges: rangesToFetch,
+  });
+
+  const valueRanges = response.data.valueRanges || [];
+  valueRanges.forEach((vr, index) => {
+    const rangeName = rangesToFetch[index];
+    const values = (vr.values as string[][]) || [];
+    cache.set(rangeName, { data: values, timestamp: Date.now() });
+    results.set(rangeName, values);
+  });
+
+  return results;
 }
 
 export async function appendToSheet(
@@ -139,21 +202,31 @@ export async function getAllProcessos(): Promise<Processo[]> {
   
   if (data.length <= 1) return [];
 
-  return data.slice(1).map((row: string[]) => ({
-    id: row[0] || '',
-    numero: row[1] || '',
-    objeto: row[2] || '',
-    fornecedor: row[3] || '',
-    valor: parseFloat(row[4]) || 0,
-    ficha_id: row[5] || '',
-    status: (row[6] as 'aprovado' | 'empenhado' | 'liquidado') || 'aprovado',
-    data_emissao: row[7] || '',
-    data_pagamento: row[8] || '',
-    responsavel: row[9] || '',
-    anexos: row[10] ? JSON.parse(row[10]) : [],
-    criado_em: row[11] || '',
-    atualizado_em: row[12] || '',
-  }));
+  return data.slice(1).map((row: string[]) => {
+    let anexos = [];
+    try {
+      anexos = row[10] ? JSON.parse(row[10]) : [];
+    } catch (e) {
+      console.error(`Erro ao parsear anexos para o processo ${row[0]}:`, e);
+      anexos = [];
+    }
+
+    return {
+      id: row[0] || '',
+      numero: row[1] || '',
+      objeto: row[2] || '',
+      fornecedor: row[3] || '',
+      valor: parseFloat(row[4]) || 0,
+      ficha_id: row[5] || '',
+      status: (row[6] as 'aprovado' | 'empenhado' | 'liquidado') || 'aprovado',
+      data_emissao: row[7] || '',
+      data_pagamento: row[8] || '',
+      responsavel: row[9] || '',
+      anexos,
+      criado_em: row[11] || '',
+      atualizado_em: row[12] || '',
+    };
+  });
 }
 
 export async function getFichaById(id: string): Promise<Ficha | null> {
