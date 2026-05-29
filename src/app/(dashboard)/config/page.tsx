@@ -7,10 +7,6 @@ export default function ConfigPage() {
   const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState('');
 
-  useEffect(() => {
-    fetchSaldo();
-  }, []);
-
   const fetchSaldo = async () => {
     try {
       const res = await fetch('/api/saldo-conta');
@@ -23,6 +19,10 @@ export default function ConfigPage() {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchSaldo();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

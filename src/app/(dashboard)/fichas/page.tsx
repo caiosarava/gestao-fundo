@@ -14,6 +14,17 @@ export default function FichasPage() {
   });
 
   useEffect(() => {
+    const fetchFichas = async () => {
+      try {
+        const res = await fetch('/api/fichas');
+        const data = await res.json();
+        setFichas(data);
+        setLoading(false);
+      } catch (error) {
+        console.error('Erro:', error);
+        setLoading(false);
+      }
+    };
     fetchFichas();
   }, []);
 

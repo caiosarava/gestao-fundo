@@ -24,6 +24,22 @@ export default function ProcessosPage() {
   const [anexos, setAnexos] = useState<{ name: string; url: string }[]>([]);
 
   useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [processosRes, fichasRes] = await Promise.all([
+          fetch('/api/processos'),
+          fetch('/api/fichas'),
+        ]);
+        const processosData = await processosRes.json();
+        const fichasData = await fichasRes.json();
+        setProcessos(processosData);
+        setFichas(fichasData);
+        setLoading(false);
+      } catch (error) {
+        console.error('Erro:', error);
+        setLoading(false);
+      }
+    };
     fetchData();
   }, []);
 
