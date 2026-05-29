@@ -4,6 +4,14 @@ import { Ficha, Processo, StatusLog } from '@/types';
 let sheetInstance: any = null;
 let driveInstance: any = null;
 
+const CACHE_TTL = 30 * 1000; // 30 segundos
+const cache = new Map<string, { data: any[][]; timestamp: number }>();
+const inflightRequests = new Map<string, Promise<any[][]>>();
+
+export function clearCache() {
+  cache.clear();
+}
+
 export async function getGoogleSheets() {
   if (sheetInstance) return sheetInstance;
 
@@ -43,15 +51,38 @@ export function getDriveFolderId() {
 }
 
 export async function getSheetData(range: string): Promise<any[][]> {
-  const sheets = await getGoogleSheets();
-  const spreadsheetId = getSpreadsheetId();
+  const now = Date.now();
+  const cached = cache.get(range);
 
-  const response = await sheets.spreadsheets.values.get({
-    spreadsheetId,
-    range,
-  });
+  if (cached && now - cached.timestamp < CACHE_TTL) {
+    return cached.data;
+  }
 
-  return response.data.values || [];
+  const existingRequest = inflightRequests.get(range);
+  if (existingRequest) {
+    return existingRequest;
+  }
+
+  const fetchPromise = (async () => {
+    try {
+      const sheets = await getGoogleSheets();
+      const spreadsheetId = getSpreadsheetId();
+
+      const response = await sheets.spreadsheets.values.get({
+        spreadsheetId,
+        range,
+      });
+
+      const values = response.data.values || [];
+      cache.set(range, { data: values, timestamp: Date.now() });
+      return values;
+    } finally {
+      inflightRequests.delete(range);
+    }
+  })();
+
+  inflightRequests.set(range, fetchPromise);
+  return fetchPromise;
 }
 
 export async function appendToSheet(
@@ -67,6 +98,8 @@ export async function appendToSheet(
     valueInputOption: 'USER_ENTERED',
     requestBody: { values },
   });
+
+  clearCache();
 }
 
 export async function updateSheet(
@@ -82,6 +115,8 @@ export async function updateSheet(
     valueInputOption: 'USER_ENTERED',
     requestBody: { values },
   });
+
+  clearCache();
 }
 
 export async function getAllFichas(): Promise<Ficha[]> {
@@ -163,6 +198,7 @@ export async function updateSaldoConta(valor: number): Promise<void> {
       valueInputOption: 'USER_ENTERED',
       requestBody: { values: [[valor]] },
     });
+    clearCache();
   } else {
     await appendToSheet('Config!A:B', [['saldo_conta_inicial', valor]]);
   }
