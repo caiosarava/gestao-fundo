@@ -6,19 +6,25 @@ import { DashboardData } from '@/types';
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetch('/api/dashboard')
-      .then((res) => {
-        if (!res.ok) throw new Error('Falha ao carregar dados');
+      .then(async (res) => {
+        if (!res.ok) {
+          const errorData = await res.json().catch(() => ({}));
+          throw new Error(errorData.message || 'Falha ao carregar dados');
+        }
         return res.json();
       })
       .then((data) => {
         setData(data);
+        setError(null);
         setLoading(false);
       })
       .catch((err) => {
         console.error('Erro:', err);
+        setError(err.message);
         setLoading(false);
       });
   }, []);
@@ -31,10 +37,17 @@ export default function DashboardPage() {
     );
   }
 
-  if (!data) {
+  if (error || !data) {
     return (
-      <div className="text-center text-red-600">
-        Erro ao carregar dados do dashboard
+      <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
+        <h3 className="text-red-800 font-bold mb-2">Erro ao carregar dados do dashboard</h3>
+        <p className="text-red-600 text-sm">{error || 'Dados indisponíveis'}</p>
+        <button
+          onClick={() => window.location.reload()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
+        >
+          Tentar novamente
+        </button>
       </div>
     );
   }
