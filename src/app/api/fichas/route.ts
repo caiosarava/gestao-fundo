@@ -7,9 +7,13 @@ export async function GET() {
     const fichas = await getAllFichas();
     return NextResponse.json(fichas);
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('Erro ao buscar fichas:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar fichas' },
+      {
+        error: 'Erro ao buscar fichas',
+        message
+      },
       { status: 500 }
     );
   }

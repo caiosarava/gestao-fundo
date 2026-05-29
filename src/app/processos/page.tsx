@@ -1,12 +1,13 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Processo, Ficha } from '@/types';
 
 export default function ProcessosPage() {
   const [processos, setProcessos] = useState<Processo[]>([]);
   const [fichas, setFichas] = useState<Ficha[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [formData, setFormData] = useState({
@@ -23,42 +24,36 @@ export default function ProcessosPage() {
   const [uploading, setUploading] = useState(false);
   const [anexos, setAnexos] = useState<{ name: string; url: string }[]>([]);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const [processosRes, fichasRes] = await Promise.all([
-          fetch('/api/processos'),
-          fetch('/api/fichas'),
-        ]);
-        const processosData = await processosRes.json();
-        const fichasData = await fichasRes.json();
-        setProcessos(processosData);
-        setFichas(fichasData);
-        setLoading(false);
-      } catch (error) {
-        console.error('Erro:', error);
-        setLoading(false);
-      }
-    };
-    fetchData();
-  }, []);
-
-  const fetchData = async () => {
+  const fetchData = useCallback(async () => {
+    setLoading(true);
     try {
       const [processosRes, fichasRes] = await Promise.all([
         fetch('/api/processos'),
         fetch('/api/fichas'),
       ]);
+
       const processosData = await processosRes.json();
       const fichasData = await fichasRes.json();
+
+      if (!processosRes.ok) throw new Error(processosData.message || processosData.error || 'Erro ao carregar processos');
+      if (!fichasRes.ok) throw new Error(fichasData.message || fichasData.error || 'Erro ao carregar fichas');
+
       setProcessos(processosData);
       setFichas(fichasData);
-      setLoading(false);
-    } catch (error) {
-      console.error('Erro:', error);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      console.error('Erro:', err);
+      setError(message);
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchData();
+  }, [fetchData]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -185,7 +180,26 @@ export default function ProcessosPage() {
       : processos.filter((p) => p.status === filterStatus);
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500" role="status">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
+        <h3 className="text-red-800 font-bold mb-2">Erro ao carregar processos</h3>
+        <p className="text-red-600 text-sm">{error}</p>
+        <button
+          onClick={() => fetchData()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
   }
 
   return (

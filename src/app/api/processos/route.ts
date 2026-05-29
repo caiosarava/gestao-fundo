@@ -15,9 +15,13 @@ export async function GET() {
     const processos = await getAllProcessos();
     return NextResponse.json(processos);
   } catch (error) {
+    const message = error instanceof Error ? error.message : 'Erro desconhecido';
     console.error('Erro ao buscar processos:', error);
     return NextResponse.json(
-      { error: 'Erro ao buscar processos' },
+      {
+        error: 'Erro ao buscar processos',
+        message
+      },
       { status: 500 }
     );
   }

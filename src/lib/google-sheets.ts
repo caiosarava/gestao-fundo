@@ -14,7 +14,7 @@ export function clearCache() {
 
 function validateEnv() {
   const email = process.env.GOOGLE_SERVICE_ACCOUNT_EMAIL;
-  const key = process.env.GOOGLE_PRIVATE_KEY;
+  let key = process.env.GOOGLE_PRIVATE_KEY;
   const sheetId = process.env.GOOGLE_SHEET_ID;
 
   if (!email || !key || !sheetId) {
@@ -25,7 +25,11 @@ function validateEnv() {
 
     throw new Error(`Variáveis de ambiente ausentes: ${missing.join(', ')}`);
   }
-  return { email, key: key.replace(/\\n/g, '\n'), sheetId };
+
+  // Remove aspas extras que podem vir do Vercel/env e resolve quebras de linha
+  key = key.replace(/^["']|["']$/g, '').replace(/\\n/g, '\n');
+
+  return { email, key, sheetId };
 }
 
 export async function getGoogleSheets(): Promise<sheets_v4.Sheets> {
