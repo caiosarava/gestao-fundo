@@ -1,11 +1,12 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { Ficha } from '@/types';
 
 export default function FichasPage() {
   const [fichas, setFichas] = useState<Ficha[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
     codigo: '',
@@ -13,32 +14,31 @@ export default function FichasPage() {
     saldo_inicial: '',
   });
 
-  useEffect(() => {
-    const fetchFichas = async () => {
-      try {
-        const res = await fetch('/api/fichas');
-        const data = await res.json();
-        setFichas(data);
-        setLoading(false);
-      } catch (error) {
-        console.error('Erro:', error);
-        setLoading(false);
-      }
-    };
-    fetchFichas();
-  }, []);
-
-  const fetchFichas = async () => {
+  const fetchFichas = useCallback(async () => {
+    setLoading(true);
     try {
       const res = await fetch('/api/fichas');
       const data = await res.json();
+
+      if (!res.ok) {
+        throw new Error(data.message || data.error || 'Erro ao carregar fichas');
+      }
+
       setFichas(data);
-      setLoading(false);
-    } catch (error) {
-      console.error('Erro:', error);
+      setError(null);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Erro desconhecido';
+      console.error('Erro:', err);
+      setError(message);
+    } finally {
       setLoading(false);
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    void fetchFichas();
+  }, [fetchFichas]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,7 +71,26 @@ export default function FichasPage() {
   };
 
   if (loading) {
-    return <div className="text-center py-8">Carregando...</div>;
+    return (
+      <div className="flex items-center justify-center h-64">
+        <div className="text-gray-500" role="status">Carregando...</div>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="text-center p-8 bg-red-50 rounded-lg border border-red-200">
+        <h3 className="text-red-800 font-bold mb-2">Erro ao carregar fichas</h3>
+        <p className="text-red-600 text-sm">{error}</p>
+        <button
+          onClick={() => fetchFichas()}
+          className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 transition-colors text-sm font-medium"
+        >
+          Tentar novamente
+        </button>
+      </div>
+    );
   }
 
   return (
