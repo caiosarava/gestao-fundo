@@ -187,17 +187,18 @@ export async function updateSheet(
 }
 
 export async function getAllFichas(): Promise<Ficha[]> {
-  const data = await getSheetData('Fichas!A:F');
+  const data = await getSheetData('Fichas!A:G');
   
   if (data.length <= 1) return [];
 
   return data.slice(1).map((row: string[]) => ({
     id: row[0] || '',
-    codigo: row[1] || '',
-    descricao: row[2] || '',
-    saldo_inicial: parseFloat(row[3]) || 0,
-    saldo_atual: parseFloat(row[4]) || 0,
-    criado_em: row[5] || '',
+    numero_ficha: row[1] || '',
+    codigo: row[2] || '',
+    descricao: row[3] || '',
+    saldo_inicial: parseFloat(row[4]) || 0,
+    saldo_atual: parseFloat(row[5]) || 0,
+    criado_em: row[6] || '',
   }));
 }
 

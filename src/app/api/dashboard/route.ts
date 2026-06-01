@@ -4,11 +4,11 @@ import { Ficha, Processo } from '@/types';
 
 export async function GET() {
   try {
-    const ranges = ['Processos!A:M', 'Fichas!A:F', 'Config!A:B'];
+    const ranges = ['Processos!A:M', 'Fichas!A:G', 'Config!A:B'];
     const batchData = await getBatchSheetData(ranges);
 
     const processosData = batchData.get('Processos!A:M') || [];
-    const fichasData = batchData.get('Fichas!A:F') || [];
+    const fichasData = batchData.get('Fichas!A:G') || [];
     const configData = batchData.get('Config!A:B') || [];
 
     const processos: Processo[] = processosData.length <= 1 ? [] : processosData.slice(1).map((row: string[]) => {
@@ -37,11 +37,12 @@ export async function GET() {
 
     const fichas: Ficha[] = fichasData.length <= 1 ? [] : fichasData.slice(1).map((row: string[]) => ({
       id: row[0] || '',
-      codigo: row[1] || '',
-      descricao: row[2] || '',
-      saldo_inicial: parseFloat(row[3]) || 0,
-      saldo_atual: parseFloat(row[4]) || 0,
-      criado_em: row[5] || '',
+      numero_ficha: row[1] || '',
+      codigo: row[2] || '',
+      descricao: row[3] || '',
+      saldo_inicial: parseFloat(row[4]) || 0,
+      saldo_atual: parseFloat(row[5]) || 0,
+      criado_em: row[6] || '',
     }));
 
     const saldoRow = configData.find((row: string[]) => row[0] === 'saldo_conta_inicial');
