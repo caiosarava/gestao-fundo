@@ -9,6 +9,7 @@ export default function FichasPage() {
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [formData, setFormData] = useState({
+    numero_ficha: '',
     codigo: '',
     descricao: '',
     saldo_inicial: '',
@@ -54,7 +55,7 @@ export default function FichasPage() {
       });
 
       if (res.ok) {
-        setFormData({ codigo: '', descricao: '', saldo_inicial: '' });
+        setFormData({ numero_ficha: '', codigo: '', descricao: '', saldo_inicial: '' });
         setShowForm(false);
         fetchFichas();
       }
@@ -114,10 +115,27 @@ export default function FichasPage() {
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Nova Ficha</h3>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="codigo" className="block text-sm font-medium text-gray-700 mb-1">
-                Código
-              </label>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="numero_ficha" className="block text-sm font-medium text-gray-700 mb-1">
+                  Nº da ficha
+                </label>
+                <input
+                  id="numero_ficha"
+                  type="text"
+                  value={formData.numero_ficha}
+                  onChange={(e) =>
+                    setFormData({ ...formData, numero_ficha: e.target.value })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex: 123"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="codigo" className="block text-sm font-medium text-gray-700 mb-1">
+                  Código
+                </label>
               <input
                 id="codigo"
                 type="text"
@@ -129,6 +147,7 @@ export default function FichasPage() {
                 placeholder="Ex: 3.3.90.30"
                 required
               />
+            </div>
             </div>
             <div>
               <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
@@ -178,6 +197,9 @@ export default function FichasPage() {
           <thead className="bg-gray-50">
             <tr>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Nº Ficha
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Código
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
@@ -205,6 +227,9 @@ export default function FichasPage() {
               fichas.map((ficha) => (
                 <tr key={ficha.id} className="hover:bg-gray-50">
                   <td className="px-6 py-4 text-sm font-medium text-gray-900">
+                    {ficha.numero_ficha}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
                     {ficha.codigo}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">

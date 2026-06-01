@@ -1,5 +1,6 @@
 export interface Ficha {
   id: string;
+  numero_ficha: string;
   codigo: string;
   descricao: string;
   saldo_inicial: number;

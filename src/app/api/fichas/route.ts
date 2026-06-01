@@ -22,11 +22,11 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { codigo, descricao, saldo_inicial } = body;
+    const { numero_ficha, codigo, descricao, saldo_inicial } = body;
 
-    if (!codigo || !descricao || saldo_inicial === undefined) {
+    if (!numero_ficha || !codigo || !descricao || saldo_inicial === undefined) {
       return NextResponse.json(
-        { error: 'Campos obrigatórios: codigo, descricao, saldo_inicial' },
+        { error: 'Campos obrigatórios: numero_ficha, codigo, descricao, saldo_inicial' },
         { status: 400 }
       );
     }
@@ -34,12 +34,13 @@ export async function POST(request: NextRequest) {
     const id = uuidv4();
     const criado_em = new Date().toISOString();
 
-    await appendToSheet('Fichas!A:F', [
-      [id, codigo, descricao, saldo_inicial, saldo_inicial, criado_em],
+    await appendToSheet('Fichas!A:G', [
+      [id, numero_ficha, codigo, descricao, saldo_inicial, saldo_inicial, criado_em],
     ]);
 
     const novaFicha = {
       id,
+      numero_ficha,
       codigo,
       descricao,
       saldo_inicial,
@@ -60,7 +61,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, codigo, descricao, saldo_inicial, saldo_atual } = body;
+    const { id, numero_ficha, codigo, descricao, saldo_inicial, saldo_atual } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -85,9 +86,10 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    await updateSheet(`Fichas!A${rowIndex}:F${rowIndex}`, [
+    await updateSheet(`Fichas!A${rowIndex}:G${rowIndex}`, [
       [
         id,
+        numero_ficha || ficha.numero_ficha,
         codigo || ficha.codigo,
         descricao || ficha.descricao,
         saldo_inicial !== undefined ? saldo_inicial : ficha.saldo_inicial,
@@ -98,6 +100,7 @@ export async function PUT(request: NextRequest) {
 
     const updatedFicha = {
       id,
+      numero_ficha: numero_ficha || ficha.numero_ficha,
       codigo: codigo || ficha.codigo,
       descricao: descricao || ficha.descricao,
       saldo_inicial: saldo_inicial !== undefined ? saldo_inicial : ficha.saldo_inicial,
