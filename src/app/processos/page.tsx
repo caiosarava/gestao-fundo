@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Processo, Ficha } from '@/types';
 
 export default function ProcessosPage() {
@@ -164,12 +164,14 @@ export default function ProcessosPage() {
     window.open(`/api/export?${params.toString()}`, '_blank');
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const formatter = useMemo(() => new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }), []);
+
+  const formatCurrency = useCallback((value: number) => {
+    return formatter.format(value);
+  }, [formatter]);
 
 
   const getStatusColor = (status: string) => {
@@ -185,12 +187,15 @@ export default function ProcessosPage() {
     }
   };
 
-  const fichaMap = new Map(fichas.map((f) => [f.id, `${f.numero_ficha} - ${f.codigo}`]));
+  const fichaMap = useMemo(() => {
+    return new Map(fichas.map((f) => [f.id, `${f.numero_ficha} - ${f.codigo}`]));
+  }, [fichas]);
 
-  const filteredProcessos =
-    filterStatus === 'all'
+  const filteredProcessos = useMemo(() => {
+    return filterStatus === 'all'
       ? processos
       : processos.filter((p) => p.status === filterStatus);
+  }, [processos, filterStatus]);
 
   if (loading) {
     return (

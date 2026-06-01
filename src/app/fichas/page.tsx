@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useState, useCallback, useMemo } from 'react';
 import { Ficha } from '@/types';
 
 export default function FichasPage() {
@@ -102,12 +102,14 @@ export default function FichasPage() {
     }
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
-  };
+  const formatter = useMemo(() => new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }), []);
+
+  const formatCurrency = useCallback((value: number) => {
+    return formatter.format(value);
+  }, [formatter]);
 
   if (loading) {
     return (
@@ -310,7 +312,7 @@ export default function FichasPage() {
           <tbody className="divide-y divide-gray-200">
             {fichas.length === 0 ? (
               <tr>
-                <td colSpan={5} className="px-6 py-8 text-center text-gray-500">
+                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
                   Nenhuma ficha cadastrada
                 </td>
               </tr>

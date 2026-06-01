@@ -1,12 +1,21 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useMemo, useCallback } from 'react';
 import { DashboardData } from '@/types';
 
 export default function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  const formatter = useMemo(() => new Intl.NumberFormat('pt-BR', {
+    style: 'currency',
+    currency: 'BRL',
+  }), []);
+
+  const formatCurrency = useCallback((value: number) => {
+    return formatter.format(value);
+  }, [formatter]);
 
   useEffect(() => {
     fetch('/api/dashboard')
@@ -98,13 +107,6 @@ export default function DashboardPage() {
     orange: 'bg-orange-50 border-orange-200 text-orange-700',
     emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
     red: 'bg-red-50 border-red-200 text-red-700',
-  };
-
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL',
-    }).format(value);
   };
 
   return (
