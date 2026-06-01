@@ -9,6 +9,7 @@ export default function ProcessosPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingProcesso, setEditingProcesso] = useState<Processo | null>(null);
   const [filterStatus, setFilterStatus] = useState<string>('all');
   const [formData, setFormData] = useState({
     numero: '',
@@ -59,14 +60,18 @@ export default function ProcessosPage() {
     e.preventDefault();
 
     try {
+      const method = editingProcesso ? 'PUT' : 'POST';
+      const body = {
+        ...formData,
+        id: editingProcesso?.id,
+        valor: parseFloat(formData.valor),
+        anexos: anexos.map((a) => a.url),
+      };
+
       const res = await fetch('/api/processos', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          valor: parseFloat(formData.valor),
-          anexos: anexos.map((a) => a.url),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
@@ -83,10 +88,44 @@ export default function ProcessosPage() {
         });
         setAnexos([]);
         setShowForm(false);
+        setEditingProcesso(null);
         fetchData();
       }
     } catch (error) {
       console.error('Erro:', error);
+    }
+  };
+
+  const handleEdit = (processo: Processo) => {
+    setEditingProcesso(processo);
+    setFormData({
+      numero: processo.numero,
+      objeto: processo.objeto,
+      fornecedor: processo.fornecedor,
+      valor: processo.valor.toString(),
+      ficha_id: processo.ficha_id,
+      status: processo.status,
+      data_emissao: processo.data_emissao.split('T')[0],
+      data_pagamento: processo.data_pagamento ? processo.data_pagamento.split('T')[0] : '',
+      responsavel: processo.responsavel,
+    });
+    setAnexos(processo.anexos.map(url => ({ name: url.split('/').pop() || 'arquivo', url })));
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir este processo?')) return;
+
+    try {
+      const res = await fetch(`/api/processos?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        fetchData();
+      }
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
     }
   };
 
@@ -115,32 +154,6 @@ export default function ProcessosPage() {
     }
   };
 
-  const handleUpdateStatus = async (
-    processoId: string,
-    newStatus: 'aprovado' | 'empenhado' | 'liquidado',
-    responsavel_mudanca: string
-  ) => {
-    try {
-      const processo = processos.find((p) => p.id === processoId);
-      if (!processo) return;
-
-      const res = await fetch('/api/processos', {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...processo,
-          status: newStatus,
-          responsavel_mudanca,
-        }),
-      });
-
-      if (res.ok) {
-        fetchData();
-      }
-    } catch (error) {
-      console.error('Erro:', error);
-    }
-  };
 
   const handleExport = async (format: 'xlsx' | 'csv') => {
     const params = new URLSearchParams({ format });
@@ -219,7 +232,24 @@ export default function ProcessosPage() {
             <span aria-hidden="true">📊</span> Exportar Excel
           </button>
           <button
-            onClick={() => setShowForm(!showForm)}
+            onClick={() => {
+              if (showForm) {
+                setEditingProcesso(null);
+                setFormData({
+                  numero: '',
+                  objeto: '',
+                  fornecedor: '',
+                  valor: '',
+                  ficha_id: '',
+                  status: 'aprovado',
+                  data_emissao: '',
+                  data_pagamento: '',
+                  responsavel: '',
+                });
+                setAnexos([]);
+              }
+              setShowForm(!showForm);
+            }}
             className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
           >
             {showForm ? 'Cancelar' : 'Novo Processo'}
@@ -229,7 +259,9 @@ export default function ProcessosPage() {
 
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Novo Processo</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editingProcesso ? 'Editar Processo' : 'Novo Processo'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-2 gap-4">
               <div>
@@ -424,7 +456,7 @@ export default function ProcessosPage() {
               type="submit"
               className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
             >
-              Salvar Processo
+              {editingProcesso ? 'Atualizar Processo' : 'Salvar Processo'}
             </button>
           </form>
         </div>
@@ -515,27 +547,19 @@ export default function ProcessosPage() {
                       </span>
                     )}
                   </td>
-                  <td className="px-6 py-4 text-sm">
-                    <select
-                      onChange={(e) => {
-                        const responsavel = prompt(
-                          'Nome do responsável pela mudança:'
-                        );
-                        if (responsavel) {
-                          handleUpdateStatus(
-                            processo.id,
-                            e.target.value as 'aprovado' | 'empenhado' | 'liquidado',
-                            responsavel
-                          );
-                        }
-                      }}
-                      value={processo.status}
-                      className="border rounded px-2 py-1 text-sm"
+                  <td className="px-6 py-4 text-right text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => handleEdit(processo)}
+                      className="text-blue-600 hover:text-blue-900"
                     >
-                      <option value="aprovado">Aprovado</option>
-                      <option value="empenhado">Empenhado</option>
-                      <option value="liquidado">Liquidado</option>
-                    </select>
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(processo.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))
