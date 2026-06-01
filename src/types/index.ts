@@ -2,6 +2,7 @@ export interface Ficha {
   id: string;
   numero_ficha: string;
   codigo: string;
+  fonte: string;
   descricao: string;
   saldo_inicial: number;
   saldo_atual: number;

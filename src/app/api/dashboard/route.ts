@@ -4,11 +4,11 @@ import { Ficha, Processo } from '@/types';
 
 export async function GET() {
   try {
-    const ranges = ['Processos!A:M', 'Fichas!A:G', 'Config!A:B'];
+    const ranges = ['Processos!A:M', 'Fichas!A:H', 'Config!A:B'];
     const batchData = await getBatchSheetData(ranges);
 
     const processosData = batchData.get('Processos!A:M') || [];
-    const fichasData = batchData.get('Fichas!A:G') || [];
+    const fichasData = batchData.get('Fichas!A:H') || [];
     const configData = batchData.get('Config!A:B') || [];
 
     const processos: Processo[] = processosData.length <= 1 ? [] : processosData.slice(1).map((row: string[]) => {
@@ -39,10 +39,11 @@ export async function GET() {
       id: row[0] || '',
       numero_ficha: row[1] || '',
       codigo: row[2] || '',
-      descricao: row[3] || '',
-      saldo_inicial: parseFloat(row[4]) || 0,
-      saldo_atual: parseFloat(row[5]) || 0,
-      criado_em: row[6] || '',
+      fonte: row[3] || '',
+      descricao: row[4] || '',
+      saldo_inicial: parseFloat(row[5]) || 0,
+      saldo_atual: parseFloat(row[6]) || 0,
+      criado_em: row[7] || '',
     }));
 
     const saldoRow = configData.find((row: string[]) => row[0] === 'saldo_conta_inicial');

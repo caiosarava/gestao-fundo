@@ -22,11 +22,11 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { numero_ficha, codigo, descricao, saldo_inicial } = body;
+    const { numero_ficha, codigo, fonte, descricao, saldo_inicial } = body;
 
-    if (!numero_ficha || !codigo || !descricao || saldo_inicial === undefined) {
+    if (!numero_ficha || !codigo || !fonte || !descricao || saldo_inicial === undefined) {
       return NextResponse.json(
-        { error: 'Campos obrigatórios: numero_ficha, codigo, descricao, saldo_inicial' },
+        { error: 'Campos obrigatórios: numero_ficha, codigo, fonte, descricao, saldo_inicial' },
         { status: 400 }
       );
     }
@@ -34,14 +34,15 @@ export async function POST(request: NextRequest) {
     const id = uuidv4();
     const criado_em = new Date().toISOString();
 
-    await appendToSheet('Fichas!A:G', [
-      [id, numero_ficha, codigo, descricao, saldo_inicial, saldo_inicial, criado_em],
+    await appendToSheet('Fichas!A:H', [
+      [id, numero_ficha, codigo, fonte, descricao, saldo_inicial, saldo_inicial, criado_em],
     ]);
 
     const novaFicha = {
       id,
       numero_ficha,
       codigo,
+      fonte,
       descricao,
       saldo_inicial,
       saldo_atual: saldo_inicial,
@@ -61,7 +62,7 @@ export async function POST(request: NextRequest) {
 export async function PUT(request: NextRequest) {
   try {
     const body = await request.json();
-    const { id, numero_ficha, codigo, descricao, saldo_inicial, saldo_atual } = body;
+    const { id, numero_ficha, codigo, fonte, descricao, saldo_inicial, saldo_atual } = body;
 
     if (!id) {
       return NextResponse.json(
@@ -86,11 +87,12 @@ export async function PUT(request: NextRequest) {
       );
     }
 
-    await updateSheet(`Fichas!A${rowIndex}:G${rowIndex}`, [
+    await updateSheet(`Fichas!A${rowIndex}:H${rowIndex}`, [
       [
         id,
         numero_ficha || ficha.numero_ficha,
         codigo || ficha.codigo,
+        fonte || ficha.fonte,
         descricao || ficha.descricao,
         saldo_inicial !== undefined ? saldo_inicial : ficha.saldo_inicial,
         saldo_atual !== undefined ? saldo_atual : ficha.saldo_atual,
@@ -102,6 +104,7 @@ export async function PUT(request: NextRequest) {
       id,
       numero_ficha: numero_ficha || ficha.numero_ficha,
       codigo: codigo || ficha.codigo,
+      fonte: fonte || ficha.fonte,
       descricao: descricao || ficha.descricao,
       saldo_inicial: saldo_inicial !== undefined ? saldo_inicial : ficha.saldo_inicial,
       saldo_atual: saldo_atual !== undefined ? saldo_atual : ficha.saldo_atual,
