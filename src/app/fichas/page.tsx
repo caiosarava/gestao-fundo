@@ -151,228 +151,249 @@ export default function FichasPage() {
             }
             setShowForm(!showForm);
           }}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+          className={`${showForm ? 'bg-gray-500 hover:bg-gray-600' : 'bg-brand-blue-dark hover:bg-blue-900'} text-white px-4 py-2 rounded-lg transition font-medium`}
         >
           {showForm ? 'Cancelar' : 'Nova Ficha'}
         </button>
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {editingFicha ? 'Editar Ficha' : 'Nova Ficha'}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="numero_ficha" className="block text-sm font-medium text-gray-700 mb-1">
-                  Nº da ficha
-                </label>
-                <input
-                  id="numero_ficha"
-                  type="text"
-                  value={formData.numero_ficha}
-                  onChange={(e) =>
-                    setFormData({ ...formData, numero_ficha: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex: 123"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="codigo" className="block text-sm font-medium text-gray-700 mb-1">
-                  Código
-                </label>
-              <input
-                id="codigo"
-                type="text"
-                value={formData.codigo}
-                onChange={(e) =>
-                  setFormData({ ...formData, codigo: e.target.value })
-                }
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                placeholder="Ex: 3.3.90.30"
-                required
-              />
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-full max-w-3xl animate-in fade-in zoom-in duration-200">
+            <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center">
+              <h3 className="text-xl font-bold text-brand-blue-dark">
+                {editingFicha ? '📝 Editar Ficha' : '📋 Nova Ficha'}
+              </h3>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Fechar"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="fonte" className="block text-sm font-medium text-gray-700 mb-1">
-                  Fonte
-                </label>
-                <input
-                  id="fonte"
-                  type="text"
-                  value={formData.fonte}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fonte: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Ex: 1500"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
-                  Descrição
-                </label>
-                <input
-                  id="descricao"
-                  type="text"
-                  value={formData.descricao}
-                  onChange={(e) =>
-                    setFormData({ ...formData, descricao: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  placeholder="Descrição da natureza de despesa"
-                  required
-                />
-              </div>
-            </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="saldo_inicial" className="block text-sm font-medium text-gray-700 mb-1">
-                  Saldo Inicial
-                </label>
-                <input
-                  id="saldo_inicial"
-                  type="number"
-                  step="0.01"
-                  value={formData.saldo_inicial}
-                  onChange={(e) =>
-                    setFormData({ ...formData, saldo_inicial: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  placeholder="0.00"
-                  required
-                />
-              </div>
-              {editingFicha && (
-                <div>
-                  <label htmlFor="saldo_atual" className="block text-sm font-medium text-gray-700 mb-1">
-                    Saldo Atual
-                  </label>
-                  <input
-                    id="saldo_atual"
-                    type="number"
-                    step="0.01"
-                    value={formData.saldo_atual}
-                    onChange={(e) =>
-                      setFormData({ ...formData, saldo_atual: e.target.value })
-                    }
-                    className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                    placeholder="0.00"
-                    required
-                  />
+            <form onSubmit={handleSubmit} className="p-8 space-y-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-brand-blue-dark uppercase tracking-wider border-b pb-2">Identificação</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="numero_ficha" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Nº da ficha
+                      </label>
+                      <input
+                        id="numero_ficha"
+                        type="text"
+                        value={formData.numero_ficha}
+                        onChange={(e) => setFormData({ ...formData, numero_ficha: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        placeholder="Ex: 123"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="codigo" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Código
+                      </label>
+                      <input
+                        id="codigo"
+                        type="text"
+                        value={formData.codigo}
+                        onChange={(e) => setFormData({ ...formData, codigo: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        placeholder="Ex: 3.3.90.30"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label htmlFor="fonte" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Fonte de Recurso
+                      </label>
+                      <input
+                        id="fonte"
+                        type="text"
+                        value={formData.fonte}
+                        onChange={(e) => setFormData({ ...formData, fonte: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        placeholder="Ex: 1500"
+                        required
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label htmlFor="descricao" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Descrição
+                      </label>
+                      <input
+                        id="descricao"
+                        type="text"
+                        value={formData.descricao}
+                        onChange={(e) => setFormData({ ...formData, descricao: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        placeholder="Descrição da natureza de despesa"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              {editingFicha ? 'Atualizar Ficha' : 'Salvar Ficha'}
-            </button>
-          </form>
+
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-brand-green-dark uppercase tracking-wider border-b pb-2">Valores</h4>
+                  <div className="grid grid-cols-1 gap-4">
+                    <div>
+                      <label htmlFor="saldo_inicial" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Saldo Inicial (R$)
+                      </label>
+                      <input
+                        id="saldo_inicial"
+                        type="number"
+                        step="0.01"
+                        value={formData.saldo_inicial}
+                        onChange={(e) => setFormData({ ...formData, saldo_inicial: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 font-bold text-brand-green-dark focus:ring-2 focus:ring-brand-green-light outline-none"
+                        placeholder="0.00"
+                        required
+                      />
+                    </div>
+                    {editingFicha && (
+                      <div>
+                        <label htmlFor="saldo_atual" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                          Saldo Atual (R$)
+                        </label>
+                        <input
+                          id="saldo_atual"
+                          type="number"
+                          step="0.01"
+                          value={formData.saldo_atual}
+                          onChange={(e) => setFormData({ ...formData, saldo_atual: e.target.value })}
+                          className="w-full border rounded-lg px-3 py-2 font-bold text-brand-blue-dark focus:ring-2 focus:ring-brand-green-light outline-none"
+                          placeholder="0.00"
+                          required
+                        />
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+              <div className="pt-6 border-t flex justify-end space-x-4">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-8 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-12 py-3 bg-brand-green-dark text-white rounded-xl hover:bg-green-900 transition-all font-bold shadow-xl hover:shadow-2xl"
+                >
+                  {editingFicha ? 'Atualizar Ficha' : 'Salvar Ficha'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Nº Ficha
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Código
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Fonte
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Descrição
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Saldo Inicial
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Saldo Atual
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Ações
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {fichas.length === 0 ? (
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                  Nenhuma ficha cadastrada
-                </td>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Nº / Código
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Descrição / Fonte
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Saldo Inicial
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Saldo Atual
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
-            ) : (
-              fichas.map((ficha) => (
-                <tr key={ficha.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {ficha.numero_ficha}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {ficha.codigo}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {ficha.fonte}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {ficha.descricao}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-right text-gray-600">
-                    {formatCurrency(ficha.saldo_inicial)}
-                  </td>
-                  <td
-                    className={`px-6 py-4 text-sm text-right font-semibold ${
-                      ficha.saldo_atual < ficha.saldo_inicial * 0.2
-                        ? 'text-red-600'
-                        : 'text-green-600'
-                    }`}
-                  >
-                    {formatCurrency(ficha.saldo_atual)}
-                  </td>
-                  <td className="px-6 py-4 text-right">
-                    {ficha.saldo_atual < ficha.saldo_inicial * 0.2 ? (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                        Baixo
-                      </span>
-                    ) : (
-                      <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                        Normal
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleEdit(ficha)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(ficha.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Excluir
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {fichas.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">
+                    Nenhuma ficha cadastrada.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                fichas.map((ficha) => (
+                  <tr key={ficha.id} className="hover:bg-blue-50/30 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-bold text-brand-blue-dark">
+                        {ficha.numero_ficha}
+                      </div>
+                      <div className="text-[10px] text-gray-400 font-medium uppercase">
+                        Cód: {ficha.codigo}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 font-medium">
+                        {ficha.descricao}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        Fonte: {ficha.fonte}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="text-sm text-gray-500">
+                        {formatCurrency(ficha.saldo_inicial)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className={`text-sm font-black ${
+                        ficha.saldo_atual < ficha.saldo_inicial * 0.2
+                          ? 'text-red-600'
+                          : 'text-brand-green-dark'
+                      }`}>
+                        {formatCurrency(ficha.saldo_atual)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      {ficha.saldo_atual < ficha.saldo_inicial * 0.2 ? (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-red-100 text-red-700 border border-red-200">
+                          Crítico
+                        </span>
+                      ) : (
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wide bg-green-100 text-brand-green-dark border border-green-200">
+                          Estável
+                        </span>
+                      )}
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEdit(ficha)}
+                          className="text-brand-blue-light hover:text-brand-blue-dark flex items-center"
+                        >
+                          <span className="mr-1">✏️</span> Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(ficha.id)}
+                          className="text-red-500 hover:text-red-700"
+                        >
+                          <span className="mr-1">🗑️</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );

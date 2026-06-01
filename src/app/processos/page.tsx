@@ -177,13 +177,13 @@ export default function ProcessosPage() {
   const getStatusColor = (status: string) => {
     switch (status) {
       case 'aprovado':
-        return 'bg-green-100 text-green-800';
+        return 'bg-green-100 text-brand-green-dark border-green-200';
       case 'empenhado':
-        return 'bg-yellow-100 text-yellow-800';
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'liquidado':
-        return 'bg-blue-100 text-blue-800';
+        return 'bg-blue-100 text-brand-blue-dark border-blue-200';
       default:
-        return 'bg-gray-100 text-gray-800';
+        return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
 
@@ -232,9 +232,9 @@ export default function ProcessosPage() {
         <div className="flex space-x-2">
           <button
             onClick={() => handleExport('xlsx')}
-            className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+            className="bg-white text-brand-green-dark border border-brand-green-dark px-4 py-2 rounded-lg hover:bg-green-50 transition font-medium flex items-center"
           >
-            <span aria-hidden="true">📊</span> Exportar Excel
+            <span aria-hidden="true" className="mr-2">📊</span> Exportar Excel
           </button>
           <button
             onClick={() => {
@@ -255,7 +255,7 @@ export default function ProcessosPage() {
               }
               setShowForm(!showForm);
             }}
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
+            className={`${showForm ? 'bg-gray-500 hover:bg-gray-600' : 'bg-brand-blue-dark hover:bg-blue-900'} text-white px-4 py-2 rounded-lg transition font-medium`}
           >
             {showForm ? 'Cancelar' : 'Novo Processo'}
           </button>
@@ -263,207 +263,233 @@ export default function ProcessosPage() {
       </div>
 
       {showForm && (
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">
-            {editingProcesso ? 'Editar Processo' : 'Novo Processo'}
-          </h3>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="numero" className="block text-sm font-medium text-gray-700 mb-1">
-                  Número do Processo
-                </label>
-                <input
-                  id="numero"
-                  type="text"
-                  value={formData.numero}
-                  onChange={(e) =>
-                    setFormData({ ...formData, numero: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="ficha_id" className="block text-sm font-medium text-gray-700 mb-1">
-                  Ficha de Despesa
-                </label>
-                <select
-                  id="ficha_id"
-                  value={formData.ficha_id}
-                  onChange={(e) =>
-                    setFormData({ ...formData, ficha_id: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  required
-                >
-                  <option value="">Selecione...</option>
-                  {fichas.map((ficha) => (
-                    <option key={ficha.id} value={ficha.id}>
-                      {ficha.numero_ficha} - {ficha.codigo} - {ficha.descricao}
-                    </option>
-                  ))}
-                </select>
-              </div>
+        <div className="fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden w-full max-w-4xl max-h-[90vh] overflow-y-auto animate-in fade-in zoom-in duration-200">
+            <div className="bg-gray-50 px-8 py-6 border-b border-gray-100 flex justify-between items-center sticky top-0 z-10">
+              <h3 className="text-xl font-bold text-brand-blue-dark">
+                {editingProcesso ? '📝 Editar Processo' : '✨ Novo Processo'}
+              </h3>
+              <button
+                onClick={() => setShowForm(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors"
+                aria-label="Fechar"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
             </div>
-
-            <div>
-              <label htmlFor="objeto" className="block text-sm font-medium text-gray-700 mb-1">
-                Objeto
-              </label>
-              <input
-                id="objeto"
-                type="text"
-                value={formData.objeto}
-                onChange={(e) =>
-                  setFormData({ ...formData, objeto: e.target.value })
-                }
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                placeholder="Descrição do objeto/contratação"
-                required
-              />
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="fornecedor" className="block text-sm font-medium text-gray-700 mb-1">
-                  Fornecedor
-                </label>
-                <input
-                  id="fornecedor"
-                  type="text"
-                  value={formData.fornecedor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, fornecedor: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="valor" className="block text-sm font-medium text-gray-700 mb-1">
-                  Valor (R$)
-                </label>
-                <input
-                  id="valor"
-                  type="number"
-                  step="0.01"
-                  value={formData.valor}
-                  onChange={(e) =>
-                    setFormData({ ...formData, valor: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="status" className="block text-sm font-medium text-gray-700 mb-1">
-                  Status
-                </label>
-                <select
-                  id="status"
-                  value={formData.status}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      status: e.target.value as
-                        | 'aprovado'
-                        | 'empenhado'
-                        | 'liquidado',
-                    })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                >
-                  <option value="aprovado">Aprovado</option>
-                  <option value="empenhado">Empenhado</option>
-                  <option value="liquidado">Liquidado</option>
-                </select>
-              </div>
-              <div>
-                <label htmlFor="responsavel" className="block text-sm font-medium text-gray-700 mb-1">
-                  Responsável
-                </label>
-                <input
-                  id="responsavel"
-                  type="text"
-                  value={formData.responsavel}
-                  onChange={(e) =>
-                    setFormData({ ...formData, responsavel: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <label htmlFor="data_emissao" className="block text-sm font-medium text-gray-700 mb-1">
-                  Data de Emissão
-                </label>
-                <input
-                  id="data_emissao"
-                  type="date"
-                  value={formData.data_emissao}
-                  onChange={(e) =>
-                    setFormData({ ...formData, data_emissao: e.target.value })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                  required
-                />
-              </div>
-              <div>
-                <label htmlFor="data_pagamento" className="block text-sm font-medium text-gray-700 mb-1">
-                  Data de Pagamento
-                </label>
-                <input
-                  id="data_pagamento"
-                  type="date"
-                  value={formData.data_pagamento}
-                  onChange={(e) =>
-                    setFormData({
-                      ...formData,
-                      data_pagamento: e.target.value,
-                    })
-                  }
-                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label htmlFor="anexos" className="block text-sm font-medium text-gray-700 mb-1">
-                Anexos (opcional)
-              </label>
-              <input
-                id="anexos"
-                type="file"
-                onChange={handleFileUpload}
-                disabled={uploading}
-                className="w-full border rounded-lg px-3 py-2"
-              />
-              {uploading && <p className="text-sm text-blue-600 mt-1">Upload em andamento...</p>}
-              {anexos.length > 0 && (
-                <div className="mt-2 space-y-1">
-                  {anexos.map((anexo, idx) => (
-                    <p key={idx} className="text-sm text-green-600">
-                      <span aria-hidden="true">📎</span> {anexo.name}
-                    </p>
-                  ))}
+            <form onSubmit={handleSubmit} className="p-8 space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
+                {/* Seção de Identificação */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-brand-blue-dark uppercase tracking-wider border-b pb-2">
+                    Identificação do Processo
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label htmlFor="objeto" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Objeto / Descrição
+                      </label>
+                      <input
+                        id="objeto"
+                        type="text"
+                        value={formData.objeto}
+                        onChange={(e) => setFormData({ ...formData, objeto: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        placeholder="Descrição do objeto/contratação"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="numero" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Nº do Processo
+                      </label>
+                      <input
+                        id="numero"
+                        type="text"
+                        value={formData.numero}
+                        onChange={(e) => setFormData({ ...formData, numero: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="fornecedor" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Fornecedor
+                      </label>
+                      <input
+                        id="fornecedor"
+                        type="text"
+                        value={formData.fornecedor}
+                        onChange={(e) => setFormData({ ...formData, fornecedor: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
                 </div>
-              )}
-            </div>
 
-            <button
-              type="submit"
-              className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
-            >
-              {editingProcesso ? 'Atualizar Processo' : 'Salvar Processo'}
-            </button>
-          </form>
+                {/* Seção Financeira e Status */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-brand-green-dark uppercase tracking-wider border-b pb-2">
+                    Financeiro e Status
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
+                      <label htmlFor="ficha_id" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Ficha de Despesa
+                      </label>
+                      <select
+                        id="ficha_id"
+                        value={formData.ficha_id}
+                        onChange={(e) => setFormData({ ...formData, ficha_id: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-green-light outline-none"
+                        required
+                      >
+                        <option value="">Selecione uma ficha...</option>
+                        {fichas.map((ficha) => (
+                          <option key={ficha.id} value={ficha.id}>
+                            {ficha.numero_ficha} - {ficha.codigo} ({formatCurrency(ficha.saldo_atual)})
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
+                      <label htmlFor="valor" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Valor (R$)
+                      </label>
+                      <input
+                        id="valor"
+                        type="number"
+                        step="0.01"
+                        value={formData.valor}
+                        onChange={(e) => setFormData({ ...formData, valor: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 font-bold text-brand-blue-dark focus:ring-2 focus:ring-brand-green-light outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="status" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Status Atual
+                      </label>
+                      <select
+                        id="status"
+                        value={formData.status}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-green-light outline-none"
+                      >
+                        <option value="aprovado">Aprovado</option>
+                        <option value="empenhado">Empenhado</option>
+                        <option value="liquidado">Liquidado</option>
+                      </select>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção de Prazos e Responsável */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider border-b pb-2">
+                    Prazos e Responsável
+                  </h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="data_emissao" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Data de Emissão
+                      </label>
+                      <input
+                        id="data_emissao"
+                        type="date"
+                        value={formData.data_emissao}
+                        onChange={(e) => setFormData({ ...formData, data_emissao: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        required
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="data_pagamento" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Data de Pagamento
+                      </label>
+                      <input
+                        id="data_pagamento"
+                        type="date"
+                        value={formData.data_pagamento}
+                        onChange={(e) => setFormData({ ...formData, data_pagamento: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <label htmlFor="responsavel" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                        Técnico Responsável
+                      </label>
+                      <input
+                        id="responsavel"
+                        type="text"
+                        value={formData.responsavel}
+                        onChange={(e) => setFormData({ ...formData, responsavel: e.target.value })}
+                        className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-blue-light outline-none"
+                        required
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Seção de Anexos */}
+                <div className="space-y-4">
+                  <h4 className="text-xs font-bold text-gray-500 uppercase tracking-wider border-b pb-2">
+                    Documentação
+                  </h4>
+                  <div>
+                    <label htmlFor="anexos" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
+                      Anexar Arquivo
+                    </label>
+                    <div className="border-2 border-dashed border-gray-200 rounded-lg p-4 text-center hover:border-brand-blue-light transition-colors">
+                      <input
+                        id="anexos"
+                        type="file"
+                        onChange={handleFileUpload}
+                        disabled={uploading}
+                        className="hidden"
+                      />
+                      <label htmlFor="anexos" className="cursor-pointer text-sm text-gray-600">
+                        {uploading ? 'Enviando...' : 'Clique para selecionar ou arraste o arquivo'}
+                      </label>
+                    </div>
+                    {anexos.length > 0 && (
+                      <div className="mt-3 grid grid-cols-1 gap-2">
+                        {anexos.map((anexo, idx) => (
+                          <div key={idx} className="flex items-center justify-between bg-blue-50 px-3 py-2 rounded border border-blue-100">
+                            <span className="text-xs text-brand-blue-dark truncate max-w-[200px]">
+                              📎 {anexo.name}
+                            </span>
+                            <button type="button" onClick={() => setAnexos(anexos.filter((_, i) => i !== idx))} className="text-red-500 hover:text-red-700 text-xs font-bold">
+                              Remover
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
+                  </div>
+                </div>
+              </div>
+
+              <div className="pt-6 border-t flex justify-end space-x-4 sticky bottom-0 bg-white z-10 pb-2">
+                <button
+                  type="button"
+                  onClick={() => setShowForm(false)}
+                  className="px-8 py-3 border rounded-xl text-gray-600 hover:bg-gray-50 font-bold transition-all"
+                >
+                  Cancelar
+                </button>
+                <button
+                  type="submit"
+                  className="px-12 py-3 bg-brand-green-dark text-white rounded-xl hover:bg-green-900 transition-all font-bold shadow-xl hover:shadow-2xl"
+                >
+                  {editingProcesso ? 'Atualizar Processo' : 'Salvar Processo'}
+                </button>
+              </div>
+            </form>
+          </div>
         </div>
       )}
 
@@ -481,96 +507,100 @@ export default function ProcessosPage() {
         </select>
       </div>
 
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <table className="w-full">
-          <thead className="bg-gray-50">
-            <tr>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Processo
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Objeto
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Fornecedor
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Ficha
-              </th>
-              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
-                Valor
-              </th>
-              <th className="px-6 py-3 text-center text-xs font-medium text-gray-500 uppercase">
-                Status
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Anexos
-              </th>
-              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
-                Ações
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-gray-200">
-            {filteredProcessos.length === 0 ? (
+      <div className="bg-white rounded-xl shadow-md border border-gray-100 overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full">
+            <thead className="bg-gray-50 border-b border-gray-100">
               <tr>
-                <td colSpan={8} className="px-6 py-8 text-center text-gray-500">
-                  Nenhum processo encontrado
-                </td>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Processo
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Objeto / Fornecedor
+                </th>
+                <th className="px-6 py-4 text-left text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Ficha
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Valor
+                </th>
+                <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Status
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Ações
+                </th>
               </tr>
-            ) : (
-              filteredProcessos.map((processo) => (
-                <tr key={processo.id} className="hover:bg-gray-50">
-                  <td className="px-6 py-4 text-sm font-medium text-gray-900">
-                    {processo.numero}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {processo.objeto}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {processo.fornecedor}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-gray-600">
-                    {fichaMap.get(processo.ficha_id) || processo.ficha_id}
-                  </td>
-                  <td className="px-6 py-4 text-sm text-right font-medium text-gray-900">
-                    {formatCurrency(processo.valor)}
-                  </td>
-                  <td className="px-6 py-4 text-center">
-                    <span
-                      className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${getStatusColor(
-                        processo.status
-                      )}`}
-                    >
-                      {processo.status}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-sm">
-                    {processo.anexos.length > 0 && (
-                      <span className="text-gray-600">
-                        <span aria-hidden="true">📎</span> {processo.anexos.length} arquivo(s)
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-6 py-4 text-right text-sm font-medium space-x-2">
-                    <button
-                      onClick={() => handleEdit(processo)}
-                      className="text-blue-600 hover:text-blue-900"
-                    >
-                      Editar
-                    </button>
-                    <button
-                      onClick={() => handleDelete(processo.id)}
-                      className="text-red-600 hover:text-red-900"
-                    >
-                      Excluir
-                    </button>
+            </thead>
+            <tbody className="divide-y divide-gray-100">
+              {filteredProcessos.length === 0 ? (
+                <tr>
+                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">
+                    Nenhum processo encontrado com os filtros atuais.
                   </td>
                 </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+              ) : (
+                filteredProcessos.map((processo) => (
+                  <tr key={processo.id} className="hover:bg-blue-50/30 transition-colors group">
+                    <td className="px-6 py-4">
+                      <div className="text-sm font-bold text-brand-blue-dark">
+                        {processo.numero}
+                      </div>
+                      <div className="text-[10px] text-gray-400 font-medium uppercase">
+                        Emitido em {new Date(processo.data_emissao).toLocaleDateString('pt-BR')}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-sm text-gray-700 font-medium line-clamp-1" title={processo.objeto}>
+                        {processo.objeto}
+                      </div>
+                      <div className="text-xs text-gray-500">
+                        {processo.fornecedor}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4">
+                      <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded inline-block">
+                        {fichaMap.get(processo.ficha_id) || processo.ficha_id}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-right">
+                      <div className="text-sm font-black text-brand-blue-dark">
+                        {formatCurrency(processo.valor)}
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-center">
+                      <span
+                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getStatusColor(
+                          processo.status
+                        )}`}
+                      >
+                        {processo.status}
+                      </span>
+                    </td>
+                    <td className="px-6 py-4 text-right text-sm font-medium">
+                      <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <button
+                          onClick={() => handleEdit(processo)}
+                          className="text-brand-blue-light hover:text-brand-blue-dark flex items-center"
+                          title="Editar Processo"
+                        >
+                          <span className="mr-1">✏️</span> Editar
+                        </button>
+                        <button
+                          onClick={() => handleDelete(processo.id)}
+                          className="text-red-500 hover:text-red-700 flex items-center"
+                          title="Excluir Processo"
+                        >
+                          <span className="mr-1">🗑️</span>
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
