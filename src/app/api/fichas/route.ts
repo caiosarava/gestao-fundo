@@ -19,6 +19,43 @@ export async function GET() {
   }
 }
 
+export async function DELETE(request: NextRequest) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const id = searchParams.get('id');
+
+    if (!id) {
+      return NextResponse.json(
+        { error: 'ID obrigatório' },
+        { status: 400 }
+      );
+    }
+
+    const ficha = await getFichaById(id);
+    if (!ficha) {
+      return NextResponse.json(
+        { error: 'Ficha não encontrada' },
+        { status: 404 }
+      );
+    }
+
+    const rowIndex = await findFichaRow(id);
+    if (rowIndex) {
+      await updateSheet(`Fichas!A${rowIndex}:H${rowIndex}`, [
+        ['DELETADO', '', '', '', '', '', '', ''],
+      ]);
+    }
+
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Erro ao deletar ficha:', error);
+    return NextResponse.json(
+      { error: 'Erro ao deletar ficha' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();

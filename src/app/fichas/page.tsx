@@ -8,12 +8,14 @@ export default function FichasPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
+  const [editingFicha, setEditingFicha] = useState<Ficha | null>(null);
   const [formData, setFormData] = useState({
     numero_ficha: '',
     codigo: '',
     fonte: '',
     descricao: '',
     saldo_inicial: '',
+    saldo_atual: '',
   });
 
   const fetchFichas = useCallback(async () => {
@@ -44,24 +46,59 @@ export default function FichasPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     try {
+      const method = editingFicha ? 'PUT' : 'POST';
+      const body = {
+        ...formData,
+        id: editingFicha?.id,
+        saldo_inicial: parseFloat(formData.saldo_inicial),
+        saldo_atual: editingFicha ? parseFloat(formData.saldo_atual) : parseFloat(formData.saldo_inicial),
+      };
+
       const res = await fetch('/api/fichas', {
-        method: 'POST',
+        method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          ...formData,
-          saldo_inicial: parseFloat(formData.saldo_inicial),
-        }),
+        body: JSON.stringify(body),
       });
 
       if (res.ok) {
-        setFormData({ numero_ficha: '', codigo: '', fonte: '', descricao: '', saldo_inicial: '' });
+        setFormData({ numero_ficha: '', codigo: '', fonte: '', descricao: '', saldo_inicial: '', saldo_atual: '' });
         setShowForm(false);
+        setEditingFicha(null);
         fetchFichas();
       }
     } catch (error) {
       console.error('Erro:', error);
+    }
+  };
+
+  const handleEdit = (ficha: Ficha) => {
+    setEditingFicha(ficha);
+    setFormData({
+      numero_ficha: ficha.numero_ficha,
+      codigo: ficha.codigo,
+      fonte: ficha.fonte,
+      descricao: ficha.descricao,
+      saldo_inicial: ficha.saldo_inicial.toString(),
+      saldo_atual: ficha.saldo_atual.toString(),
+    });
+    setShowForm(true);
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Tem certeza que deseja excluir esta ficha?')) return;
+
+    try {
+      const res = await fetch(`/api/fichas?id=${id}`, {
+        method: 'DELETE',
+      });
+
+      if (res.ok) {
+        fetchFichas();
+      }
+    } catch (error) {
+      console.error('Erro ao excluir:', error);
     }
   };
 
@@ -105,7 +142,13 @@ export default function FichasPage() {
           </p>
         </div>
         <button
-          onClick={() => setShowForm(!showForm)}
+          onClick={() => {
+            if (showForm) {
+              setEditingFicha(null);
+              setFormData({ numero_ficha: '', codigo: '', fonte: '', descricao: '', saldo_inicial: '', saldo_atual: '' });
+            }
+            setShowForm(!showForm);
+          }}
           className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition"
         >
           {showForm ? 'Cancelar' : 'Nova Ficha'}
@@ -114,7 +157,9 @@ export default function FichasPage() {
 
       {showForm && (
         <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold mb-4">Nova Ficha</h3>
+          <h3 className="text-lg font-semibold mb-4">
+            {editingFicha ? 'Editar Ficha' : 'Nova Ficha'}
+          </h3>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
@@ -184,28 +229,49 @@ export default function FichasPage() {
                 />
               </div>
             </div>
-            <div>
-              <label htmlFor="saldo_inicial" className="block text-sm font-medium text-gray-700 mb-1">
-                Saldo Inicial
-              </label>
-              <input
-                id="saldo_inicial"
-                type="number"
-                step="0.01"
-                value={formData.saldo_inicial}
-                onChange={(e) =>
-                  setFormData({ ...formData, saldo_inicial: e.target.value })
-                }
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                placeholder="0.00"
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="saldo_inicial" className="block text-sm font-medium text-gray-700 mb-1">
+                  Saldo Inicial
+                </label>
+                <input
+                  id="saldo_inicial"
+                  type="number"
+                  step="0.01"
+                  value={formData.saldo_inicial}
+                  onChange={(e) =>
+                    setFormData({ ...formData, saldo_inicial: e.target.value })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  placeholder="0.00"
+                  required
+                />
+              </div>
+              {editingFicha && (
+                <div>
+                  <label htmlFor="saldo_atual" className="block text-sm font-medium text-gray-700 mb-1">
+                    Saldo Atual
+                  </label>
+                  <input
+                    id="saldo_atual"
+                    type="number"
+                    step="0.01"
+                    value={formData.saldo_atual}
+                    onChange={(e) =>
+                      setFormData({ ...formData, saldo_atual: e.target.value })
+                    }
+                    className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                    placeholder="0.00"
+                    required
+                  />
+                </div>
+              )}
             </div>
             <button
               type="submit"
               className="w-full bg-green-600 text-white py-2 rounded-lg hover:bg-green-700 transition"
             >
-              Salvar Ficha
+              {editingFicha ? 'Atualizar Ficha' : 'Salvar Ficha'}
             </button>
           </form>
         </div>
@@ -235,6 +301,9 @@ export default function FichasPage() {
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
                 Status
+              </th>
+              <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
+                Ações
               </th>
             </tr>
           </thead>
@@ -282,6 +351,20 @@ export default function FichasPage() {
                         Normal
                       </span>
                     )}
+                  </td>
+                  <td className="px-6 py-4 text-right text-sm font-medium space-x-2">
+                    <button
+                      onClick={() => handleEdit(ficha)}
+                      className="text-blue-600 hover:text-blue-900"
+                    >
+                      Editar
+                    </button>
+                    <button
+                      onClick={() => handleDelete(ficha.id)}
+                      className="text-red-600 hover:text-red-900"
+                    >
+                      Excluir
+                    </button>
                   </td>
                 </tr>
               ))

@@ -69,8 +69,17 @@ export async function POST(request: NextRequest) {
     const rowIndex = await findFichaRow(ficha_id);
     
     if (rowIndex) {
-      await updateSheet(`Fichas!A${rowIndex}:F${rowIndex}`, [
-        [ficha.id, ficha.codigo, ficha.descricao, ficha.saldo_inicial, novoSaldo, ficha.criado_em],
+      await updateSheet(`Fichas!A${rowIndex}:H${rowIndex}`, [
+        [
+          ficha.id,
+          ficha.numero_ficha,
+          ficha.codigo,
+          ficha.fonte,
+          ficha.descricao,
+          ficha.saldo_inicial,
+          novoSaldo,
+          ficha.criado_em,
+        ],
       ]);
     }
 
@@ -171,8 +180,17 @@ export async function PUT(request: NextRequest) {
         const fichaRowIndex = await findFichaRow(ficha.id);
         
         if (fichaRowIndex) {
-          await updateSheet(`Fichas!A${fichaRowIndex}:F${fichaRowIndex}`, [
-            [ficha.id, ficha.codigo, ficha.descricao, ficha.saldo_inicial, novoSaldoFicha, ficha.criado_em],
+          await updateSheet(`Fichas!A${fichaRowIndex}:H${fichaRowIndex}`, [
+            [
+              ficha.id,
+              ficha.numero_ficha,
+              ficha.codigo,
+              ficha.fonte,
+              ficha.descricao,
+              ficha.saldo_inicial,
+              novoSaldoFicha,
+              ficha.criado_em,
+            ],
           ]);
         }
       }
@@ -262,8 +280,17 @@ export async function DELETE(request: NextRequest) {
       const rowIndex = await findFichaRow(ficha.id);
       
       if (rowIndex) {
-        await updateSheet(`Fichas!A${rowIndex}:F${rowIndex}`, [
-          [ficha.id, ficha.codigo, ficha.descricao, ficha.saldo_inicial, novoSaldo, ficha.criado_em],
+        await updateSheet(`Fichas!A${rowIndex}:H${rowIndex}`, [
+          [
+            ficha.id,
+            ficha.numero_ficha,
+            ficha.codigo,
+            ficha.fonte,
+            ficha.descricao,
+            ficha.saldo_inicial,
+            novoSaldo,
+            ficha.criado_em,
+          ],
         ]);
       }
     }
