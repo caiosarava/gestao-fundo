@@ -11,6 +11,7 @@ export default function FichasPage() {
   const [formData, setFormData] = useState({
     numero_ficha: '',
     codigo: '',
+    fonte: '',
     descricao: '',
     saldo_inicial: '',
   });
@@ -55,7 +56,7 @@ export default function FichasPage() {
       });
 
       if (res.ok) {
-        setFormData({ numero_ficha: '', codigo: '', descricao: '', saldo_inicial: '' });
+        setFormData({ numero_ficha: '', codigo: '', fonte: '', descricao: '', saldo_inicial: '' });
         setShowForm(false);
         fetchFichas();
       }
@@ -149,21 +150,39 @@ export default function FichasPage() {
               />
             </div>
             </div>
-            <div>
-              <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
-                Descrição
-              </label>
-              <input
-                id="descricao"
-                type="text"
-                value={formData.descricao}
-                onChange={(e) =>
-                  setFormData({ ...formData, descricao: e.target.value })
-                }
-                className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
-                placeholder="Descrição da natureza de despesa"
-                required
-              />
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label htmlFor="fonte" className="block text-sm font-medium text-gray-700 mb-1">
+                  Fonte
+                </label>
+                <input
+                  id="fonte"
+                  type="text"
+                  value={formData.fonte}
+                  onChange={(e) =>
+                    setFormData({ ...formData, fonte: e.target.value })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Ex: 1500"
+                  required
+                />
+              </div>
+              <div>
+                <label htmlFor="descricao" className="block text-sm font-medium text-gray-700 mb-1">
+                  Descrição
+                </label>
+                <input
+                  id="descricao"
+                  type="text"
+                  value={formData.descricao}
+                  onChange={(e) =>
+                    setFormData({ ...formData, descricao: e.target.value })
+                  }
+                  className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+                  placeholder="Descrição da natureza de despesa"
+                  required
+                />
+              </div>
             </div>
             <div>
               <label htmlFor="saldo_inicial" className="block text-sm font-medium text-gray-700 mb-1">
@@ -203,6 +222,9 @@ export default function FichasPage() {
                 Código
               </th>
               <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
+                Fonte
+              </th>
+              <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">
                 Descrição
               </th>
               <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase">
@@ -231,6 +253,9 @@ export default function FichasPage() {
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {ficha.codigo}
+                  </td>
+                  <td className="px-6 py-4 text-sm text-gray-600">
+                    {ficha.fonte}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-600">
                     {ficha.descricao}
