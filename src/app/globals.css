@@ -1,1 +1,18 @@
 @import "tailwindcss";
+
+@theme {
+  --color-brand-blue-dark: #002d5c;
+  --color-brand-blue-light: #0056b3;
+  --color-brand-green-dark: #064e3b;
+  --color-brand-green-light: #10b981;
+}
+
+:root {
+  --foreground: #171717;
+  --background: #f8fafc;
+}
+
+body {
+  color: var(--foreground);
+  background: var(--background);
+}

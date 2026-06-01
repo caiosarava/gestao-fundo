@@ -16,26 +16,26 @@ export function Navigation() {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
   return (
-    <nav className="bg-white shadow-sm border-b">
+    <nav className="bg-brand-blue-dark shadow-md">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <h1 className="text-xl font-bold text-gray-800">
+              <h1 className="text-xl font-bold text-white">
                 <span aria-hidden="true" className="mr-2">💰</span>
                 Gestão Fundo Municipal
               </h1>
             </div>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
+            <div className="hidden sm:ml-10 sm:flex sm:space-x-8">
               {navItems.map((item) => (
                 <Link
                   key={item.href}
                   href={item.href}
                   aria-current={pathname === item.href ? 'page' : undefined}
-                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium ${
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium transition-colors ${
                     pathname === item.href
-                      ? 'border-blue-500 text-gray-900'
-                      : 'border-transparent text-gray-500 hover:border-gray-300 hover:text-gray-700'
+                      ? 'border-brand-green-light text-white'
+                      : 'border-transparent text-blue-100 hover:border-blue-300 hover:text-white'
                   }`}
                 >
                   <span className="mr-2" aria-hidden="true">{item.icon}</span>
@@ -48,7 +48,7 @@ export function Navigation() {
             <button
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500"
+              className="inline-flex items-center justify-center p-2 rounded-md text-blue-100 hover:text-white hover:bg-brand-blue-light focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand-green-light"
               aria-controls="mobile-menu"
               aria-expanded={isMenuOpen}
             >
@@ -67,7 +67,7 @@ export function Navigation() {
         </div>
       </div>
 
-      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden`} id="mobile-menu">
+      <div className={`${isMenuOpen ? 'block' : 'hidden'} sm:hidden bg-brand-blue-dark border-t border-brand-blue-light`} id="mobile-menu">
         <div className="pt-2 pb-3 space-y-1">
           {navItems.map((item) => (
             <Link
@@ -75,10 +75,10 @@ export function Navigation() {
               href={item.href}
               onClick={() => setIsMenuOpen(false)}
               aria-current={pathname === item.href ? 'page' : undefined}
-              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+              className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium transition-colors ${
                 pathname === item.href
-                  ? 'bg-blue-50 border-blue-500 text-blue-700'
-                  : 'border-transparent text-gray-500 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-700'
+                  ? 'bg-brand-blue-light border-brand-green-light text-white'
+                  : 'border-transparent text-blue-100 hover:bg-brand-blue-light hover:border-blue-300 hover:text-white'
               }`}
             >
               <span className="mr-2" aria-hidden="true">{item.icon}</span>

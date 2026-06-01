@@ -70,47 +70,47 @@ export default function ConfigPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Configurações</h2>
-        <p className="text-gray-600 mt-1">
-          Gerencie as configurações do sistema
+    <div className="space-y-10">
+      <div className="border-b pb-4">
+        <h2 className="text-3xl font-black text-brand-blue-dark">Configurações</h2>
+        <p className="text-gray-500 mt-1 font-medium">
+          Gerencie as definições globais do sistema
         </p>
       </div>
 
-      <div className="bg-white rounded-lg shadow p-6 max-w-2xl">
-        <h3 className="text-lg font-semibold mb-4">Saldo da Conta</h3>
-        <p className="text-sm text-gray-600 mb-4">
-          Este é o saldo inicial total do Fundo Municipal de Economia Solidária.
-          Este valor é usado para calcular o saldo disponível.
+      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8 max-w-2xl">
+        <h3 className="text-xl font-bold text-brand-blue-dark mb-6">🏛️ Saldo Global da Conta</h3>
+        <p className="text-sm text-gray-500 mb-8 font-medium">
+          Este é o aporte total de recursos do Fundo Municipal.
+          O saldo disponível no dashboard é calculado subtraindo todos os processos deste valor.
         </p>
 
-        <div className="mb-6">
-          <p className="text-sm text-gray-600">Saldo Atual:</p>
-          <p className="text-3xl font-bold text-blue-600">
+        <div className="mb-8 p-6 bg-blue-50 rounded-xl border border-blue-100">
+          <p className="text-xs font-bold text-brand-blue-light uppercase tracking-widest mb-1">Saldo Atual em Conta</p>
+          <p className="text-4xl font-black text-brand-blue-dark tabular-nums">
             {formatCurrency(saldo)}
           </p>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-6">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Novo Saldo
+            <label className="block text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">
+              Ajustar Saldo Total (R$)
             </label>
             <input
               type="number"
               step="0.01"
               value={formData}
               onChange={(e) => setFormData(e.target.value)}
-              className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-blue-500"
+              className="w-full border rounded-lg px-4 py-3 font-bold text-brand-blue-dark focus:ring-2 focus:ring-brand-blue-light outline-none transition-all"
               required
             />
           </div>
           <button
             type="submit"
-            className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700 transition"
+            className="w-full bg-brand-blue-dark text-white py-3 rounded-lg hover:bg-blue-900 transition font-bold shadow-md"
           >
-            Atualizar Saldo
+            Confirmar Alteração
           </button>
         </form>
       </div>

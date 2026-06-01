@@ -65,14 +65,20 @@ export default function DashboardPage() {
     {
       title: 'Saldo da Conta',
       value: data.saldo_conta,
-      icon: '💰',
-      color: 'blue',
+      icon: '🏛️',
+      color: 'brandBlue',
+    },
+    {
+      title: 'Saldo Disponível',
+      value: data.saldo_disponivel,
+      icon: '🟢',
+      color: 'brandGreen',
     },
     {
       title: 'Aprovados',
       value: data.total_aprovados,
       icon: '✅',
-      color: 'green',
+      color: 'brandGreenLight',
     },
     {
       title: 'Empenhados',
@@ -84,7 +90,7 @@ export default function DashboardPage() {
       title: 'Liquidados',
       value: data.total_liquidados,
       icon: '✔️',
-      color: 'blue',
+      color: 'brandBlueLight',
     },
     {
       title: 'Restos a Pagar',
@@ -92,84 +98,98 @@ export default function DashboardPage() {
       icon: '⏳',
       color: 'orange',
     },
-    {
-      title: 'Saldo Disponível',
-      value: data.saldo_disponivel,
-      icon: '🟢',
-      color: 'emerald',
-    },
   ];
 
   const colorClasses = {
-    blue: 'bg-blue-50 border-blue-200 text-blue-700',
-    green: 'bg-green-50 border-green-200 text-green-700',
+    brandBlue: 'bg-white border-brand-blue-dark text-brand-blue-dark shadow-sm',
+    brandGreen: 'bg-brand-green-dark border-brand-green-dark text-white shadow-md',
+    brandGreenLight: 'bg-green-50 border-green-200 text-green-700',
+    brandBlueLight: 'bg-blue-50 border-blue-200 text-blue-700',
     yellow: 'bg-yellow-50 border-yellow-200 text-yellow-700',
     orange: 'bg-orange-50 border-orange-200 text-orange-700',
-    emerald: 'bg-emerald-50 border-emerald-200 text-emerald-700',
     red: 'bg-red-50 border-red-200 text-red-700',
   };
 
   return (
-    <div className="space-y-8">
-      <div>
-        <h2 className="text-2xl font-bold text-gray-900">Dashboard</h2>
-        <p className="text-gray-600 mt-1">
-          Visão geral do Fundo Municipal de Economia Solidária
+    <div className="space-y-10">
+      <div className="border-b pb-4">
+        <h2 className="text-3xl font-black text-brand-blue-dark">Dashboard Financeiro</h2>
+        <p className="text-gray-500 mt-1 font-medium">
+          Monitoramento em tempo real do Fundo Municipal de Economia Solidária
         </p>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {cards.map((card) => (
           <div
             key={card.title}
-            className={`rounded-lg border-2 p-6 ${colorClasses[card.color as keyof typeof colorClasses]}`}
+            className={`rounded-2xl border p-6 transition-all hover:shadow-lg ${colorClasses[card.color as keyof typeof colorClasses]}`}
           >
-            <div className="flex items-center justify-between">
+            <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium opacity-80">{card.title}</p>
-                <p className="text-2xl font-bold mt-2">
+                <p className="text-xs font-bold uppercase tracking-widest opacity-70">{card.title}</p>
+                <p className="text-3xl font-black mt-3 tabular-nums">
                   {formatCurrency(card.value)}
                 </p>
               </div>
-              <span className="text-4xl" aria-hidden="true">{card.icon}</span>
+              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm shadow-inner">
+                <span className="text-3xl" aria-hidden="true">{card.icon}</span>
+              </div>
             </div>
+            {card.title === 'Saldo Disponível' && (
+              <div className="mt-6">
+                <div className="w-full bg-black/10 rounded-full h-2">
+                  <div
+                    className="bg-white rounded-full h-2 transition-all duration-1000"
+                    style={{ width: `${Math.min(100, (data.saldo_disponivel / data.saldo_conta) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-[10px] mt-2 font-bold uppercase opacity-80 tracking-tighter">
+                  {Math.round((data.saldo_disponivel / data.saldo_conta) * 100)}% do recurso total disponível
+                </p>
+              </div>
+            )}
           </div>
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Saldo das Fichas de Despesa
-          </h3>
-          <div className="space-y-3">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-bold text-brand-blue-dark">
+              Saldo das Fichas
+            </h3>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border">Detalhamento</span>
+          </div>
+          <div className="space-y-6">
             {(!data.fichas || data.fichas.length === 0) ? (
-              <p className="text-gray-500 text-sm">
-                Nenhuma ficha cadastrada
-              </p>
+              <div className="flex flex-col items-center justify-center py-10 text-gray-400 italic">
+                <span className="text-4xl mb-2">📁</span>
+                <p>Nenhuma ficha cadastrada</p>
+              </div>
             ) : (
               data.fichas.map((ficha) => (
-                <div
-                  key={ficha.id}
-                  className="flex justify-between items-center py-2 border-b last:border-0"
-                >
-                  <div>
-                    <p className="font-medium text-gray-900">{ficha.codigo}</p>
-                    <p className="text-sm text-gray-600">{ficha.descricao}</p>
+                <div key={ficha.id} className="group">
+                  <div className="flex justify-between items-end mb-2">
+                    <div>
+                      <p className="text-xs font-bold text-brand-blue-dark uppercase tracking-tight">{ficha.codigo}</p>
+                      <p className="text-sm text-gray-500 font-medium line-clamp-1">{ficha.descricao}</p>
+                    </div>
+                    <div className="text-right">
+                      <p className={`text-lg font-black tabular-nums ${
+                        ficha.saldo_atual < ficha.saldo_inicial * 0.2 ? 'text-red-600' : 'text-brand-green-dark'
+                      }`}>
+                        {formatCurrency(ficha.saldo_atual)}
+                      </p>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <p
-                      className={`font-semibold ${
-                        ficha.saldo_atual < ficha.saldo_inicial * 0.2
-                          ? 'text-red-600'
-                          : 'text-green-600'
+                  <div className="w-full bg-gray-100 rounded-full h-1.5 overflow-hidden">
+                    <div
+                      className={`h-full transition-all duration-1000 ${
+                        ficha.saldo_atual < ficha.saldo_inicial * 0.2 ? 'bg-red-500' : 'bg-brand-green-light'
                       }`}
-                    >
-                      {formatCurrency(ficha.saldo_atual)}
-                    </p>
-                    <p className="text-xs text-gray-500">
-                      Inicial: {formatCurrency(ficha.saldo_inicial)}
-                    </p>
+                      style={{ width: `${Math.min(100, (ficha.saldo_atual / ficha.saldo_inicial) * 100)}%` }}
+                    />
                   </div>
                 </div>
               ))
@@ -177,10 +197,13 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        <div className="bg-white rounded-lg shadow p-6">
-          <h3 className="text-lg font-semibold text-gray-900 mb-4">
-            Resumo por Status
-          </h3>
+        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
+          <div className="flex items-center justify-between mb-8">
+            <h3 className="text-xl font-bold text-brand-blue-dark">
+              Resumo por Status
+            </h3>
+            <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border">Fluxo de Caixa</span>
+          </div>
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
