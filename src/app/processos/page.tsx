@@ -185,7 +185,7 @@ export default function ProcessosPage() {
     }
   };
 
-  const fichaMap = new Map(fichas.map((f) => [f.id, f.codigo]));
+  const fichaMap = new Map(fichas.map((f) => [f.id, `${f.numero_ficha} - ${f.codigo}`]));
 
   const filteredProcessos =
     filterStatus === 'all'
@@ -295,7 +295,7 @@ export default function ProcessosPage() {
                   <option value="">Selecione...</option>
                   {fichas.map((ficha) => (
                     <option key={ficha.id} value={ficha.id}>
-                      {ficha.codigo} - {ficha.descricao}
+                      {ficha.numero_ficha} - {ficha.codigo} - {ficha.descricao}
                     </option>
                   ))}
                 </select>
