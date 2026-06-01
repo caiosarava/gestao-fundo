@@ -186,21 +186,39 @@ export async function updateSheet(
   clearCache();
 }
 
+/**
+ * Trata números vindos do Google Sheets que podem usar vírgula como separador decimal.
+ */
+export function parseNumber(value: string | number | undefined): number {
+  if (value === undefined || value === null) return 0;
+  if (typeof value === 'number') return value;
+
+  // Remove pontos de milhar e troca vírgula por ponto
+  const normalized = value.toString()
+    .replace(/\./g, '')
+    .replace(',', '.');
+
+  const parsed = parseFloat(normalized);
+  return isNaN(parsed) ? 0 : parsed;
+}
+
 export async function getAllFichas(): Promise<Ficha[]> {
   const data = await getSheetData('Fichas!A:H');
   
   if (data.length <= 1) return [];
 
-  return data.slice(1).map((row: string[]) => ({
-    id: row[0] || '',
-    numero_ficha: row[1] || '',
-    codigo: row[2] || '',
-    fonte: row[3] || '',
-    descricao: row[4] || '',
-    saldo_inicial: parseFloat(row[5]) || 0,
-    saldo_atual: parseFloat(row[6]) || 0,
-    criado_em: row[7] || '',
-  }));
+  return data.slice(1)
+    .filter(row => row[0] && row[0] !== 'DELETADO')
+    .map((row: string[]) => ({
+      id: row[0] || '',
+      numero_ficha: row[1] || '',
+      codigo: row[2] || '',
+      fonte: row[3] || '',
+      descricao: row[4] || '',
+      saldo_inicial: parseNumber(row[5]),
+      saldo_atual: parseNumber(row[6]),
+      criado_em: row[7] || '',
+    }));
 }
 
 export async function getAllProcessos(): Promise<Processo[]> {
@@ -208,31 +226,33 @@ export async function getAllProcessos(): Promise<Processo[]> {
   
   if (data.length <= 1) return [];
 
-  return data.slice(1).map((row: string[]) => {
-    let anexos = [];
-    try {
-      anexos = row[10] ? JSON.parse(row[10]) : [];
-    } catch (e) {
-      console.error(`Erro ao parsear anexos para o processo ${row[0]}:`, e);
-      anexos = [];
-    }
+  return data.slice(1)
+    .filter(row => row[0] && row[0] !== 'DELETADO')
+    .map((row: string[]) => {
+      let anexos = [];
+      try {
+        anexos = row[10] ? JSON.parse(row[10]) : [];
+      } catch (e) {
+        console.error(`Erro ao parsear anexos para o processo ${row[0]}:`, e);
+        anexos = [];
+      }
 
-    return {
-      id: row[0] || '',
-      numero: row[1] || '',
-      objeto: row[2] || '',
-      fornecedor: row[3] || '',
-      valor: parseFloat(row[4]) || 0,
-      ficha_id: row[5] || '',
-      status: (row[6] as 'aprovado' | 'empenhado' | 'liquidado') || 'aprovado',
-      data_emissao: row[7] || '',
-      data_pagamento: row[8] || '',
-      responsavel: row[9] || '',
-      anexos,
-      criado_em: row[11] || '',
-      atualizado_em: row[12] || '',
-    };
-  });
+      return {
+        id: row[0] || '',
+        numero: row[1] || '',
+        objeto: row[2] || '',
+        fornecedor: row[3] || '',
+        valor: parseNumber(row[4]),
+        ficha_id: row[5] || '',
+        status: (row[6] as 'aprovado' | 'empenhado' | 'liquidado') || 'aprovado',
+        data_emissao: row[7] || '',
+        data_pagamento: row[8] || '',
+        responsavel: row[9] || '',
+        anexos,
+        criado_em: row[11] || '',
+        atualizado_em: row[12] || '',
+      };
+    });
 }
 
 export async function getFichaById(id: string): Promise<Ficha | null> {
@@ -246,21 +266,25 @@ export async function getProcessoById(id: string): Promise<Processo | null> {
 }
 
 export async function findFichaRow(id: string): Promise<number | null> {
-  const data = await getSheetData('Fichas!A:A');
+  // Otimização: usa o range completo que já deve estar em cache
+  const data = await getSheetData('Fichas!A:H');
   const rowIndex = data.findIndex((row: string[]) => row[0] === id);
+  // Pula o cabeçalho (index 0)
   return rowIndex > 0 ? rowIndex + 1 : null;
 }
 
 export async function findProcessoRow(id: string): Promise<number | null> {
-  const data = await getSheetData('Processos!A:A');
+  // Otimização: usa o range completo que já deve estar em cache
+  const data = await getSheetData('Processos!A:M');
   const rowIndex = data.findIndex((row: string[]) => row[0] === id);
+  // Pula o cabeçalho (index 0)
   return rowIndex > 0 ? rowIndex + 1 : null;
 }
 
 export async function getSaldoConta(): Promise<number> {
   const data = await getSheetData('Config!A:B');
   const saldoRow = data.find((row: string[]) => row[0] === 'saldo_conta_inicial');
-  return saldoRow ? parseFloat(saldoRow[1]) || 0 : 0;
+  return saldoRow ? parseNumber(saldoRow[1]) : 0;
 }
 
 export async function updateSaldoConta(valor: number): Promise<void> {

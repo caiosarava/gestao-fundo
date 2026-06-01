@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getBatchSheetData } from '@/lib/google-sheets';
+import { getBatchSheetData, parseNumber } from '@/lib/google-sheets';
 import { Ficha, Processo } from '@/types';
 
 export async function GET() {
@@ -11,43 +11,47 @@ export async function GET() {
     const fichasData = batchData.get('Fichas!A:H') || [];
     const configData = batchData.get('Config!A:B') || [];
 
-    const processos: Processo[] = processosData.length <= 1 ? [] : processosData.slice(1).map((row: string[]) => {
-      let anexos = [];
-      try {
-        anexos = row[10] ? JSON.parse(row[10]) : [];
-      } catch {
-        anexos = [];
-      }
-      return {
-        id: row[0] || '',
-        numero: row[1] || '',
-        objeto: row[2] || '',
-        fornecedor: row[3] || '',
-        valor: parseFloat(row[4]) || 0,
-        ficha_id: row[5] || '',
-        status: (row[6] as Processo['status']) || 'aprovado',
-        data_emissao: row[7] || '',
-        data_pagamento: row[8] || '',
-        responsavel: row[9] || '',
-        anexos,
-        criado_em: row[11] || '',
-        atualizado_em: row[12] || '',
-      };
-    });
+    const processos: Processo[] = processosData.length <= 1 ? [] : processosData.slice(1)
+      .filter(row => row[0] && row[0] !== 'DELETADO')
+      .map((row: string[]) => {
+        let anexos = [];
+        try {
+          anexos = row[10] ? JSON.parse(row[10]) : [];
+        } catch {
+          anexos = [];
+        }
+        return {
+          id: row[0] || '',
+          numero: row[1] || '',
+          objeto: row[2] || '',
+          fornecedor: row[3] || '',
+          valor: parseNumber(row[4]),
+          ficha_id: row[5] || '',
+          status: (row[6] as Processo['status']) || 'aprovado',
+          data_emissao: row[7] || '',
+          data_pagamento: row[8] || '',
+          responsavel: row[9] || '',
+          anexos,
+          criado_em: row[11] || '',
+          atualizado_em: row[12] || '',
+        };
+      });
 
-    const fichas: Ficha[] = fichasData.length <= 1 ? [] : fichasData.slice(1).map((row: string[]) => ({
-      id: row[0] || '',
-      numero_ficha: row[1] || '',
-      codigo: row[2] || '',
-      fonte: row[3] || '',
-      descricao: row[4] || '',
-      saldo_inicial: parseFloat(row[5]) || 0,
-      saldo_atual: parseFloat(row[6]) || 0,
-      criado_em: row[7] || '',
-    }));
+    const fichas: Ficha[] = fichasData.length <= 1 ? [] : fichasData.slice(1)
+      .filter(row => row[0] && row[0] !== 'DELETADO')
+      .map((row: string[]) => ({
+        id: row[0] || '',
+        numero_ficha: row[1] || '',
+        codigo: row[2] || '',
+        fonte: row[3] || '',
+        descricao: row[4] || '',
+        saldo_inicial: parseNumber(row[5]),
+        saldo_atual: parseNumber(row[6]),
+        criado_em: row[7] || '',
+      }));
 
     const saldoRow = configData.find((row: string[]) => row[0] === 'saldo_conta_inicial');
-    const saldoConta = saldoRow ? parseFloat(saldoRow[1]) || 0 : 0;
+    const saldoConta = saldoRow ? parseNumber(saldoRow[1]) : 0;
 
     let totalAprovados = 0;
     let totalEmpenhados = 0;
