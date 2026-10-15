@@ -53,25 +53,29 @@ export async function GET(request: NextRequest) {
     const worksheet = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Processos');
 
-    const totalEmpenhados = filtered.filter(p => p.status === 'empenhado').reduce((sum, p) => sum + p.valor, 0);
-    const totalLiquidadosParcial = filtered.filter(p => p.status === 'liquidado_parcial').reduce((sum, p) => {
-      const pago = (p.pagamentos || []).reduce((s, item) => s + (item.valor || 0), 0);
-      return sum + pago;
-    }, 0);
-    const saldoPendenteParcial = filtered.filter(p => p.status === 'liquidado_parcial').reduce((sum, p) => {
-      const pago = (p.pagamentos || []).reduce((s, item) => s + (item.valor || 0), 0);
-      return sum + Math.max(0, p.valor - pago);
-    }, 0);
-    const totalLiquidados = filtered.filter(p => p.status === 'liquidado').reduce((sum, p) => sum + p.valor, 0);
+    let totalEmpenhados = 0;
+    let totalLiquidados = 0;
+    let restosAPagar = 0;
+
+    for (const p of filtered) {
+      const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
+      const saldoPendente = Math.max(0, p.valor - pago);
+      restosAPagar += saldoPendente;
+
+      if (p.status === 'empenhado') {
+        totalEmpenhados += p.valor;
+      } else if (p.status === 'liquidado') {
+        totalLiquidados += pago > 0 ? pago : p.valor;
+      }
+    }
 
     const resumoData = [
       ['RESUMO DO FUNDO'],
       ['Saldo Inicial da Conta', await getSaldoConta()],
       ['Total de Processos', filtered.length],
       ['Total Empenhados', totalEmpenhados],
-      ['Total Liquidados Parcialmente', totalLiquidadosParcial],
       ['Total Liquidados', totalLiquidados],
-      ['Restos a Pagar', totalEmpenhados + saldoPendenteParcial],
+      ['Restos a Pagar', restosAPagar],
     ];
 
     const resumoWorksheet = XLSX.utils.json_to_sheet(

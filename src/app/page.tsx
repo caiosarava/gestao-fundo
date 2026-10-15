@@ -81,12 +81,6 @@ export default function DashboardPage() {
       color: 'yellow',
     },
     {
-      title: 'Liquidados Parcialmente',
-      value: data.total_liquidados_parcial || 0,
-      icon: '📊',
-      color: 'brandGreenLight',
-    },
-    {
       title: 'Liquidados',
       value: data.total_liquidados,
       icon: '✔️',
@@ -212,15 +206,6 @@ export default function DashboardPage() {
               </div>
               <span className="font-semibold text-yellow-600">
                 {formatCurrency(data.total_empenhados)}
-              </span>
-            </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl" aria-hidden="true">📊</span>
-                <span className="text-gray-700">Liquidados Parcialmente</span>
-              </div>
-              <span className="font-semibold text-teal-600">
-                {formatCurrency(data.total_liquidados_parcial || 0)}
               </span>
             </div>
             <div className="flex items-center justify-between">
