@@ -88,7 +88,7 @@ export async function GET() {
 
     const totalPago = pagoLiquidados + pagoParciais;
     const restosAPagar = restosEmpenhados + restosSaldoPendente;
-    const saldoDisponivel = saldoConta - totalPago;
+    const saldoDisponivel = saldoConta - (totalPago + restosAPagar);
 
     return NextResponse.json({
       saldo_conta: saldoConta,
