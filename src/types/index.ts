@@ -47,7 +47,12 @@ export interface DashboardData {
   total_empenhados: number;
   total_liquidados_parcial: number;
   total_liquidados: number;
+  total_pago: number;
+  pago_liquidados: number;
+  pago_parciais: number;
   restos_a_pagar: number;
+  restos_empenhados: number;
+  restos_saldo_pendente: number;
   saldo_disponivel: number;
   fichas: Ficha[];
 }
