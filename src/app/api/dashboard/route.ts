@@ -62,22 +62,23 @@ export async function GET() {
 
     let totalEmpenhados = 0;
     let totalLiquidadosParcial = 0;
-    let totalSaldoPendenteParcial = 0;
     let totalLiquidados = 0;
+    let restosAPagar = 0;
 
     for (const p of processos) {
+      const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
+      const saldoPendente = Math.max(0, p.valor - pago);
+      restosAPagar += saldoPendente;
+
       if (p.status === 'empenhado') {
         totalEmpenhados += p.valor;
       } else if (p.status === 'liquidado_parcial') {
-        const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
         totalLiquidadosParcial += pago;
-        totalSaldoPendenteParcial += Math.max(0, p.valor - pago);
       } else if (p.status === 'liquidado') {
-        totalLiquidados += p.valor;
+        // Se totalmente liquidado, valor pago é p.valor (ou pago)
+        totalLiquidados += pago > 0 ? pago : p.valor;
       }
     }
-
-    const restosAPagar = totalEmpenhados + totalSaldoPendenteParcial;
 
     const saldoDisponivel = saldoConta - (totalLiquidados + totalLiquidadosParcial);
 
