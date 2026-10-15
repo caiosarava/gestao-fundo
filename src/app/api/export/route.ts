@@ -53,14 +53,25 @@ export async function GET(request: NextRequest) {
     const worksheet = XLSX.utils.json_to_sheet(data);
     XLSX.utils.book_append_sheet(workbook, worksheet, 'Processos');
 
+    const totalEmpenhados = filtered.filter(p => p.status === 'empenhado').reduce((sum, p) => sum + p.valor, 0);
+    const totalLiquidadosParcial = filtered.filter(p => p.status === 'liquidado_parcial').reduce((sum, p) => {
+      const pago = (p.pagamentos || []).reduce((s, item) => s + (item.valor || 0), 0);
+      return sum + pago;
+    }, 0);
+    const saldoPendenteParcial = filtered.filter(p => p.status === 'liquidado_parcial').reduce((sum, p) => {
+      const pago = (p.pagamentos || []).reduce((s, item) => s + (item.valor || 0), 0);
+      return sum + Math.max(0, p.valor - pago);
+    }, 0);
+    const totalLiquidados = filtered.filter(p => p.status === 'liquidado').reduce((sum, p) => sum + p.valor, 0);
+
     const resumoData = [
       ['RESUMO DO FUNDO'],
       ['Saldo Inicial da Conta', await getSaldoConta()],
       ['Total de Processos', filtered.length],
-      ['Total Aprovados', filtered.filter(p => p.status === 'aprovado').reduce((sum, p) => sum + p.valor, 0)],
-      ['Total Empenhados', filtered.filter(p => p.status === 'empenhado').reduce((sum, p) => sum + p.valor, 0)],
-      ['Total Liquidados', filtered.filter(p => p.status === 'liquidado').reduce((sum, p) => sum + p.valor, 0)],
-      ['Restos a Pagar', filtered.filter(p => ['aprovado', 'empenhado'].includes(p.status)).reduce((sum, p) => sum + p.valor, 0)],
+      ['Total Empenhados', totalEmpenhados],
+      ['Total Liquidados Parcialmente', totalLiquidadosParcial],
+      ['Total Liquidados', totalLiquidados],
+      ['Restos a Pagar', totalEmpenhados + saldoPendenteParcial],
     ];
 
     const resumoWorksheet = XLSX.utils.json_to_sheet(

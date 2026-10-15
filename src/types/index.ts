@@ -23,7 +23,7 @@ export interface Processo {
   fornecedor: string;
   valor: number;
   ficha_id: string;
-  status: 'aprovado' | 'empenhado' | 'liquidado_parcial' | 'liquidado';
+  status: 'empenhado' | 'liquidado_parcial' | 'liquidado';
   data_emissao: string;
   data_pagamento?: string;
   responsavel: string;
@@ -44,7 +44,6 @@ export interface StatusLog {
 
 export interface DashboardData {
   saldo_conta: number;
-  total_aprovados: number;
   total_empenhados: number;
   total_liquidados_parcial: number;
   total_liquidados: number;

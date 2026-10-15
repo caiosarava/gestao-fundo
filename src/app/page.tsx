@@ -63,7 +63,7 @@ export default function DashboardPage() {
 
   const cards = [
     {
-      title: 'Saldo da Conta',
+      title: 'Saldo Inicial',
       value: data.saldo_conta,
       icon: '🏛️',
       color: 'brandBlue',
@@ -75,16 +75,16 @@ export default function DashboardPage() {
       color: 'brandGreen',
     },
     {
-      title: 'Aprovados',
-      value: data.total_aprovados,
-      icon: '✅',
-      color: 'brandGreenLight',
-    },
-    {
       title: 'Empenhados',
       value: data.total_empenhados,
       icon: '🔒',
       color: 'yellow',
+    },
+    {
+      title: 'Liquidados Parcialmente',
+      value: data.total_liquidados_parcial || 0,
+      icon: '📊',
+      color: 'brandGreenLight',
     },
     {
       title: 'Liquidados',
@@ -205,15 +205,6 @@ export default function DashboardPage() {
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border">Fluxo de Caixa</span>
           </div>
           <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl" aria-hidden="true">✅</span>
-                <span className="text-gray-700">Aprovados</span>
-              </div>
-              <span className="font-semibold text-green-600">
-                {formatCurrency(data.total_aprovados)}
-              </span>
-            </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <span className="text-2xl" aria-hidden="true">🔒</span>

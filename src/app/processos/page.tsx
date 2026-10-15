@@ -17,7 +17,7 @@ export default function ProcessosPage() {
     fornecedor: '',
     valor: '',
     ficha_id: '',
-    status: 'aprovado' as 'aprovado' | 'empenhado' | 'liquidado_parcial' | 'liquidado',
+    status: 'empenhado' as 'empenhado' | 'liquidado_parcial' | 'liquidado',
     data_emissao: '',
     data_pagamento: '',
     responsavel: '',
@@ -95,7 +95,7 @@ export default function ProcessosPage() {
           fornecedor: '',
           valor: '',
           ficha_id: '',
-          status: 'aprovado',
+          status: 'empenhado',
           data_emissao: '',
           data_pagamento: '',
           responsavel: '',
@@ -235,8 +235,6 @@ export default function ProcessosPage() {
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'aprovado':
-        return 'bg-green-100 text-brand-green-dark border-green-200';
       case 'empenhado':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
       case 'liquidado_parcial':
@@ -316,7 +314,7 @@ export default function ProcessosPage() {
                   fornecedor: '',
                   valor: '',
                   ficha_id: '',
-                  status: 'aprovado',
+          status: 'empenhado',
                   data_emissao: '',
                   data_pagamento: '',
                   responsavel: '',
@@ -446,10 +444,9 @@ export default function ProcessosPage() {
                       <select
                         id="status"
                         value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'aprovado' | 'empenhado' | 'liquidado_parcial' | 'liquidado' })}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'empenhado' | 'liquidado_parcial' | 'liquidado' })}
                         className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-green-light outline-none"
                       >
-                        <option value="aprovado">Aprovado</option>
                         <option value="empenhado">Empenhado</option>
                         <option value="liquidado_parcial">Liquidado Parcial</option>
                         <option value="liquidado">Liquidado</option>
@@ -651,7 +648,6 @@ export default function ProcessosPage() {
           className="border rounded-lg px-3 py-2"
         >
           <option value="all">Todos</option>
-          <option value="aprovado">Aprovados</option>
           <option value="empenhado">Empenhados</option>
           <option value="liquidado_parcial">Liquidados Parcialmente</option>
           <option value="liquidado">Liquidados</option>
