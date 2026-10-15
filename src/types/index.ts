@@ -9,6 +9,13 @@ export interface Ficha {
   criado_em: string;
 }
 
+export interface PagamentoParcela {
+  id: string;
+  valor: number;
+  data_pagamento: string;
+  observacao?: string;
+}
+
 export interface Processo {
   id: string;
   numero: string;
@@ -21,6 +28,7 @@ export interface Processo {
   data_pagamento?: string;
   responsavel: string;
   anexos: string[];
+  pagamentos?: PagamentoParcela[];
   criado_em: string;
   atualizado_em: string;
 }

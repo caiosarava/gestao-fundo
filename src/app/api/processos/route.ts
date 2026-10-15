@@ -36,12 +36,14 @@ export async function POST(request: NextRequest) {
       fornecedor,
       valor,
       ficha_id,
-      status,
+      status: reqStatus,
       data_emissao,
       data_pagamento,
       responsavel,
       anexos,
+      pagamentos,
     } = body;
+    let status = reqStatus;
 
     if (!numero || !objeto || !fornecedor || !valor || !ficha_id || !status || !data_emissao || !responsavel) {
       return NextResponse.json(
@@ -83,10 +85,18 @@ export async function POST(request: NextRequest) {
       ]);
     }
 
+    const totalPago = Array.isArray(pagamentos)
+      ? pagamentos.reduce((acc: number, p: { valor: number }) => acc + (Number(p.valor) || 0), 0)
+      : 0;
+
+    if (totalPago >= valor && valor > 0) {
+      status = 'liquidado';
+    }
+
     const id = uuidv4();
     const agora = new Date().toISOString();
 
-    await appendToSheet('Processos!A:M', [
+    await appendToSheet('Processos!A:N', [
       [
         id,
         numero,
@@ -101,6 +111,7 @@ export async function POST(request: NextRequest) {
         JSON.stringify(anexos || []),
         agora,
         agora,
+        JSON.stringify(pagamentos || []),
       ],
     ]);
 
@@ -116,6 +127,7 @@ export async function POST(request: NextRequest) {
       data_pagamento,
       responsavel,
       anexos: anexos || [],
+      pagamentos: pagamentos || [],
       criado_em: agora,
       atualizado_em: agora,
     };
@@ -140,12 +152,14 @@ export async function PUT(request: NextRequest) {
       fornecedor,
       valor,
       ficha_id,
-      status,
+      status: reqStatus,
       data_emissao,
       data_pagamento,
       responsavel,
       anexos,
+      pagamentos,
     } = body;
+    let status = reqStatus;
 
     if (!id) {
       return NextResponse.json(
@@ -196,35 +210,47 @@ export async function PUT(request: NextRequest) {
       }
     }
 
-    const statusAlterado = status && status !== processo.status;
+    const novoValor = valor !== undefined ? valor : processo.valor;
+    const novosPagamentos = pagamentos !== undefined ? pagamentos : (processo.pagamentos || []);
+    const totalPago = Array.isArray(novosPagamentos)
+      ? novosPagamentos.reduce((acc: number, p: { valor: number }) => acc + (Number(p.valor) || 0), 0)
+      : 0;
+
+    if (totalPago >= novoValor && novoValor > 0) {
+      status = 'liquidado';
+    }
+
+    const novoStatus = status || processo.status;
+    const statusAlterado = novoStatus !== processo.status;
     if (statusAlterado) {
       await appendToSheet('StatusLog!A:F', [
         [
           uuidv4(),
           id,
           processo.status,
-          status,
-          body.responsavel_mudanca || responsavel,
+          novoStatus,
+          body.responsavel_mudanca || responsavel || processo.responsavel,
           new Date().toISOString(),
         ],
       ]);
     }
 
-    await updateSheet(`Processos!A${rowIndex}:M${rowIndex}`, [
+    await updateSheet(`Processos!A${rowIndex}:N${rowIndex}`, [
       [
         id,
         numero || processo.numero,
         objeto || processo.objeto,
         fornecedor || processo.fornecedor,
-        valor !== undefined ? valor : processo.valor,
+        novoValor,
         ficha_id || processo.ficha_id,
-        status || processo.status,
+        novoStatus,
         data_emissao || processo.data_emissao,
         data_pagamento !== undefined ? data_pagamento : processo.data_pagamento,
         responsavel || processo.responsavel,
         JSON.stringify(anexos !== undefined ? anexos : processo.anexos),
         processo.criado_em,
         new Date().toISOString(),
+        JSON.stringify(novosPagamentos),
       ],
     ]);
 
@@ -233,13 +259,14 @@ export async function PUT(request: NextRequest) {
       numero: numero || processo.numero,
       objeto: objeto || processo.objeto,
       fornecedor: fornecedor || processo.fornecedor,
-      valor: valor !== undefined ? valor : processo.valor,
+      valor: novoValor,
       ficha_id: ficha_id || processo.ficha_id,
-      status: status || processo.status,
+      status: novoStatus,
       data_emissao: data_emissao || processo.data_emissao,
       data_pagamento: data_pagamento !== undefined ? data_pagamento : processo.data_pagamento,
       responsavel: responsavel || processo.responsavel,
       anexos: anexos !== undefined ? anexos : processo.anexos,
+      pagamentos: novosPagamentos,
       criado_em: processo.criado_em,
       atualizado_em: new Date().toISOString(),
     };

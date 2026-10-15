@@ -4,10 +4,10 @@ import { Ficha, Processo } from '@/types';
 
 export async function GET() {
   try {
-    const ranges = ['Processos!A:M', 'Fichas!A:H', 'Config!A:B'];
+    const ranges = ['Processos!A:N', 'Fichas!A:H', 'Config!A:B'];
     const batchData = await getBatchSheetData(ranges);
 
-    const processosData = batchData.get('Processos!A:M') || [];
+    const processosData = batchData.get('Processos!A:N') || [];
     const fichasData = batchData.get('Fichas!A:H') || [];
     const configData = batchData.get('Config!A:B') || [];
 
@@ -19,6 +19,12 @@ export async function GET() {
           anexos = row[10] ? JSON.parse(row[10]) : [];
         } catch {
           anexos = [];
+        }
+        let pagamentos = [];
+        try {
+          pagamentos = row[13] ? JSON.parse(row[13]) : [];
+        } catch {
+          pagamentos = [];
         }
         return {
           id: row[0] || '',
@@ -32,6 +38,7 @@ export async function GET() {
           data_pagamento: row[8] || '',
           responsavel: row[9] || '',
           anexos,
+          pagamentos,
           criado_em: row[11] || '',
           atualizado_em: row[12] || '',
         };
