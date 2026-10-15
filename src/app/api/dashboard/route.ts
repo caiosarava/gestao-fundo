@@ -62,27 +62,33 @@ export async function GET() {
 
     let totalAprovados = 0;
     let totalEmpenhados = 0;
+    let totalLiquidadosParcial = 0;
+    let totalSaldoPendenteParcial = 0;
     let totalLiquidados = 0;
 
-    // Redução do número de iterações sobre o array de processos de 4 para 1.
     for (const p of processos) {
       if (p.status === 'aprovado') {
         totalAprovados += p.valor;
       } else if (p.status === 'empenhado') {
         totalEmpenhados += p.valor;
+      } else if (p.status === 'liquidado_parcial') {
+        const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
+        totalLiquidadosParcial += pago;
+        totalSaldoPendenteParcial += Math.max(0, p.valor - pago);
       } else if (p.status === 'liquidado') {
         totalLiquidados += p.valor;
       }
     }
 
-    const restosAPagar = totalAprovados + totalEmpenhados;
+    const restosAPagar = totalAprovados + totalEmpenhados + totalSaldoPendenteParcial;
 
-    const saldoDisponivel = saldoConta - (totalAprovados + totalEmpenhados + totalLiquidados);
+    const saldoDisponivel = saldoConta - (totalAprovados + totalEmpenhados + totalLiquidadosParcial + totalSaldoPendenteParcial + totalLiquidados);
 
     return NextResponse.json({
       saldo_conta: saldoConta,
       total_aprovados: totalAprovados,
       total_empenhados: totalEmpenhados,
+      total_liquidados_parcial: totalLiquidadosParcial,
       total_liquidados: totalLiquidados,
       restos_a_pagar: restosAPagar,
       saldo_disponivel: saldoDisponivel,
