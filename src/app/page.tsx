@@ -63,34 +63,47 @@ export default function DashboardPage() {
 
   const cards = [
     {
+      id: 'saldo_inicial',
       title: 'Saldo Inicial',
       value: data.saldo_conta,
       icon: '🏛️',
       color: 'brandBlue',
     },
     {
+      id: 'saldo_disponivel',
       title: 'Saldo Disponível',
       value: data.saldo_disponivel,
       icon: '🟢',
       color: 'brandGreen',
     },
     {
+      id: 'empenhados',
       title: 'Empenhados',
       value: data.total_empenhados,
       icon: '🔒',
       color: 'yellow',
     },
     {
-      title: 'Liquidados',
-      value: data.total_liquidados,
+      id: 'valor_pago',
+      title: 'Valor Pago',
+      value: data.total_pago ?? data.total_liquidados,
       icon: '✔️',
       color: 'brandBlueLight',
+      subBars: [
+        { label: 'Liquidados', value: data.pago_liquidados ?? data.total_liquidados, colorBg: 'bg-blue-600' },
+        { label: 'Liquidados Parcialmente', value: data.pago_parciais ?? data.total_liquidados_parcial, colorBg: 'bg-indigo-500' },
+      ],
     },
     {
+      id: 'restos_a_pagar',
       title: 'Restos a Pagar',
       value: data.restos_a_pagar,
       icon: '⏳',
       color: 'orange',
+      subBars: [
+        { label: 'Empenhados', value: data.restos_empenhados ?? data.total_empenhados, colorBg: 'bg-yellow-600' },
+        { label: 'Saldo Pendente', value: data.restos_saldo_pendente ?? 0, colorBg: 'bg-orange-500' },
+      ],
     },
   ];
 
@@ -116,31 +129,55 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
         {cards.map((card) => (
           <div
-            key={card.title}
-            className={`rounded-2xl border p-6 transition-all hover:shadow-lg ${colorClasses[card.color as keyof typeof colorClasses]}`}
+            key={card.id}
+            className={`rounded-2xl border p-6 transition-all hover:shadow-lg flex flex-col justify-between ${colorClasses[card.color as keyof typeof colorClasses]}`}
           >
-            <div className="flex items-start justify-between">
-              <div>
-                <p className="text-xs font-bold uppercase tracking-widest opacity-70">{card.title}</p>
-                <p className="text-3xl font-black mt-3 tabular-nums">
-                  {formatCurrency(card.value)}
-                </p>
-              </div>
-              <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm shadow-inner">
-                <span className="text-3xl" aria-hidden="true">{card.icon}</span>
-              </div>
-            </div>
-            {card.title === 'Saldo Disponível' && (
-              <div className="mt-6">
-                <div className="w-full bg-black/10 rounded-full h-2">
-                  <div
-                    className="bg-white rounded-full h-2 transition-all duration-1000"
-                    style={{ width: `${Math.min(100, (data.saldo_disponivel / data.saldo_conta) * 100)}%` }}
-                  />
+            <div>
+              <div className="flex items-start justify-between">
+                <div>
+                  <p className="text-xs font-bold uppercase tracking-widest opacity-70">{card.title}</p>
+                  <p className="text-3xl font-black mt-3 tabular-nums">
+                    {formatCurrency(card.value)}
+                  </p>
                 </div>
-                <p className="text-[10px] mt-2 font-bold uppercase opacity-80 tracking-tighter">
-                  {Math.round((data.saldo_disponivel / data.saldo_conta) * 100)}% do recurso total disponível
-                </p>
+                <div className="bg-white/20 p-3 rounded-xl backdrop-blur-sm shadow-inner">
+                  <span className="text-3xl" aria-hidden="true">{card.icon}</span>
+                </div>
+              </div>
+
+              {card.title === 'Saldo Disponível' && (
+                <div className="mt-6">
+                  <div className="w-full bg-black/10 rounded-full h-2">
+                    <div
+                      className="bg-white rounded-full h-2 transition-all duration-1000"
+                      style={{ width: `${Math.min(100, (data.saldo_disponivel / data.saldo_conta) * 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-[10px] mt-2 font-bold uppercase opacity-80 tracking-tighter">
+                    {Math.round((data.saldo_disponivel / data.saldo_conta) * 100)}% do recurso total disponível
+                  </p>
+                </div>
+              )}
+            </div>
+
+            {card.subBars && (
+              <div className="mt-6 border-t border-black/10 pt-4 space-y-3">
+                {card.subBars.map((sub) => {
+                  return (
+                    <div key={sub.label} className="space-y-1">
+                      <div className="flex justify-between text-xs font-semibold">
+                        <span>{sub.label}</span>
+                        <span className="tabular-nums">{formatCurrency(sub.value)}</span>
+                      </div>
+                      <div className="w-full bg-black/10 rounded-full h-1.5 overflow-hidden">
+                        <div
+                          className={`h-full ${sub.colorBg} transition-all duration-500`}
+                          style={{ width: `${Math.min(100, card.value > 0 ? (sub.value / card.value) * 100 : 0)}%` }}
+                        />
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </div>
@@ -198,36 +235,58 @@ export default function DashboardPage() {
             </h3>
             <span className="text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50 px-2 py-1 rounded border">Fluxo de Caixa</span>
           </div>
-          <div className="space-y-4">
+          <div className="space-y-5">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-3">
                 <span className="text-2xl" aria-hidden="true">🔒</span>
-                <span className="text-gray-700">Empenhados</span>
+                <span className="text-gray-700 font-medium">Empenhados</span>
               </div>
               <span className="font-semibold text-yellow-600">
                 {formatCurrency(data.total_empenhados)}
               </span>
             </div>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center space-x-3">
-                <span className="text-2xl" aria-hidden="true">✔️</span>
-                <span className="text-gray-700">Liquidados</span>
+
+            <div className="border-t pt-3 space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <span className="text-2xl" aria-hidden="true">✔️</span>
+                  <span className="text-gray-700 font-bold">Valor Pago (Total)</span>
+                </div>
+                <span className="font-bold text-blue-700">
+                  {formatCurrency(data.total_pago ?? data.total_liquidados)}
+                </span>
               </div>
-              <span className="font-semibold text-blue-600">
-                {formatCurrency(data.total_liquidados)}
-              </span>
+              <div className="pl-9 space-y-1 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>• Liquidados</span>
+                  <span>{formatCurrency(data.pago_liquidados ?? data.total_liquidados)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>• Liquidados Parcialmente</span>
+                  <span>{formatCurrency(data.pago_parciais ?? data.total_liquidados_parcial)}</span>
+                </div>
+              </div>
             </div>
-            <div className="border-t pt-4">
+
+            <div className="border-t pt-3 space-y-2">
               <div className="flex items-center justify-between">
                 <div className="flex items-center space-x-3">
                   <span className="text-2xl" aria-hidden="true">⏳</span>
-                  <span className="text-gray-700 font-medium">
-                    Restos a Pagar
-                  </span>
+                  <span className="text-gray-700 font-bold">Restos a Pagar (Total)</span>
                 </div>
-                <span className="font-semibold text-orange-600">
+                <span className="font-bold text-orange-600">
                   {formatCurrency(data.restos_a_pagar)}
                 </span>
+              </div>
+              <div className="pl-9 space-y-1 text-sm text-gray-600">
+                <div className="flex justify-between">
+                  <span>• Empenhados</span>
+                  <span>{formatCurrency(data.restos_empenhados ?? data.total_empenhados)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span>• Saldo Pendente</span>
+                  <span>{formatCurrency(data.restos_saldo_pendente ?? 0)}</span>
+                </div>
               </div>
             </div>
           </div>

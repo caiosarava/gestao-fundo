@@ -63,31 +63,44 @@ export async function GET() {
     let totalEmpenhados = 0;
     let totalLiquidadosParcial = 0;
     let totalLiquidados = 0;
-    let restosAPagar = 0;
+    let pagoLiquidados = 0;
+    let pagoParciais = 0;
+    let restosEmpenhados = 0;
+    let restosSaldoPendente = 0;
 
     for (const p of processos) {
       const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
       const saldoPendente = Math.max(0, p.valor - pago);
-      restosAPagar += saldoPendente;
 
       if (p.status === 'empenhado') {
         totalEmpenhados += p.valor;
+        restosEmpenhados += p.valor;
       } else if (p.status === 'liquidado_parcial') {
         totalLiquidadosParcial += pago;
+        pagoParciais += pago;
+        restosSaldoPendente += saldoPendente;
       } else if (p.status === 'liquidado') {
-        // Se totalmente liquidado, valor pago é p.valor (ou pago)
-        totalLiquidados += pago > 0 ? pago : p.valor;
+        const valPagoFinal = pago > 0 ? pago : p.valor;
+        totalLiquidados += valPagoFinal;
+        pagoLiquidados += valPagoFinal;
       }
     }
 
-    const saldoDisponivel = saldoConta - (totalLiquidados + totalLiquidadosParcial);
+    const totalPago = pagoLiquidados + pagoParciais;
+    const restosAPagar = restosEmpenhados + restosSaldoPendente;
+    const saldoDisponivel = saldoConta - totalPago;
 
     return NextResponse.json({
       saldo_conta: saldoConta,
       total_empenhados: totalEmpenhados,
       total_liquidados_parcial: totalLiquidadosParcial,
       total_liquidados: totalLiquidados,
+      total_pago: totalPago,
+      pago_liquidados: pagoLiquidados,
+      pago_parciais: pagoParciais,
       restos_a_pagar: restosAPagar,
+      restos_empenhados: restosEmpenhados,
+      restos_saldo_pendente: restosSaldoPendente,
       saldo_disponivel: saldoDisponivel,
       fichas,
     });
