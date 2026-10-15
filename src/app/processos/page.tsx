@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState, useCallback, useMemo } from 'react';
-import { Processo, Ficha } from '@/types';
+import { Processo, Ficha, PagamentoParcela } from '@/types';
 
 export default function ProcessosPage() {
   const [processos, setProcessos] = useState<Processo[]>([]);
@@ -22,6 +22,9 @@ export default function ProcessosPage() {
     data_pagamento: '',
     responsavel: '',
   });
+  const [pagamentos, setPagamentos] = useState<PagamentoParcela[]>([]);
+  const [novaParcelaValor, setNovaParcelaValor] = useState('');
+  const [novaParcelaData, setNovaParcelaData] = useState('');
   const [uploading, setUploading] = useState(false);
   const [anexos, setAnexos] = useState<{ name: string; url: string }[]>([]);
 
@@ -61,11 +64,17 @@ export default function ProcessosPage() {
 
     try {
       const method = editingProcesso ? 'PUT' : 'POST';
+      const valorNumerico = parseFloat(formData.valor) || 0;
+      const totalPago = pagamentos.reduce((acc, p) => acc + (p.valor || 0), 0);
+      const statusFinal = (totalPago >= valorNumerico && valorNumerico > 0) ? 'liquidado' : formData.status;
+
       const body = {
         ...formData,
+        status: statusFinal,
         id: editingProcesso?.id,
-        valor: parseFloat(formData.valor),
+        valor: valorNumerico,
         anexos: anexos.map((a) => a.url),
+        pagamentos,
       };
 
       const res = await fetch('/api/processos', {
@@ -86,6 +95,9 @@ export default function ProcessosPage() {
           data_pagamento: '',
           responsavel: '',
         });
+        setPagamentos([]);
+        setNovaParcelaValor('');
+        setNovaParcelaData('');
         setAnexos([]);
         setShowForm(false);
         setEditingProcesso(null);
@@ -109,6 +121,9 @@ export default function ProcessosPage() {
       data_pagamento: processo.data_pagamento ? processo.data_pagamento.split('T')[0] : '',
       responsavel: processo.responsavel,
     });
+    setPagamentos(processo.pagamentos || []);
+    setNovaParcelaValor('');
+    setNovaParcelaData('');
     setAnexos(processo.anexos.map(url => ({ name: url.split('/').pop() || 'arquivo', url })));
     setShowForm(true);
   };
@@ -154,6 +169,39 @@ export default function ProcessosPage() {
     }
   };
 
+
+  const handleAddParcela = () => {
+    const val = parseFloat(novaParcelaValor);
+    if (isNaN(val) || val <= 0 || !novaParcelaData) return;
+
+    const novaParcela: PagamentoParcela = {
+      id: Date.now().toString(),
+      valor: val,
+      data_pagamento: novaParcelaData,
+    };
+
+    const novosPagamentos = [...pagamentos, novaParcela];
+    setPagamentos(novosPagamentos);
+    setNovaParcelaValor('');
+    setNovaParcelaData('');
+
+    const totalEmpenhado = parseFloat(formData.valor) || 0;
+    const totalPago = novosPagamentos.reduce((acc, p) => acc + p.valor, 0);
+    if (totalPago >= totalEmpenhado && totalEmpenhado > 0) {
+      setFormData(prev => ({ ...prev, status: 'liquidado' }));
+    }
+  };
+
+  const handleRemoveParcela = (id: string) => {
+    const novosPagamentos = pagamentos.filter((p) => p.id !== id);
+    setPagamentos(novosPagamentos);
+
+    const totalEmpenhado = parseFloat(formData.valor) || 0;
+    const totalPago = novosPagamentos.reduce((acc, p) => acc + p.valor, 0);
+    if (totalPago < totalEmpenhado && formData.status === 'liquidado') {
+      setFormData(prev => ({ ...prev, status: 'empenhado' }));
+    }
+  };
 
   const handleExport = async (format: 'xlsx' | 'csv') => {
     const params = new URLSearchParams({ format });
@@ -357,7 +405,7 @@ export default function ProcessosPage() {
                     </div>
                     <div>
                       <label htmlFor="valor" className="block text-xs font-semibold text-gray-500 uppercase mb-1">
-                        Valor (R$)
+                        Valor Empenhado (R$)
                       </label>
                       <input
                         id="valor"
@@ -376,7 +424,7 @@ export default function ProcessosPage() {
                       <select
                         id="status"
                         value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'aprovado' | 'empenhado' | 'liquidado' })}
                         className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-green-light outline-none"
                       >
                         <option value="aprovado">Aprovado</option>
@@ -384,6 +432,85 @@ export default function ProcessosPage() {
                         <option value="liquidado">Liquidado</option>
                       </select>
                     </div>
+                  </div>
+
+                  {/* Campo de Valor Pago / Pagamentos Parciais */}
+                  <div className="bg-gray-50 p-4 rounded-xl border border-gray-200 space-y-3">
+                    <div className="flex justify-between items-center">
+                      <label className="block text-xs font-bold text-brand-blue-dark uppercase">
+                        Valor Pago / Parcelas Parciais
+                      </label>
+                      {(() => {
+                        const totalEmpenhado = parseFloat(formData.valor) || 0;
+                        const totalPago = pagamentos.reduce((acc, p) => acc + p.valor, 0);
+                        const saldoPendente = Math.max(0, totalEmpenhado - totalPago);
+                        return (
+                          <div className="text-xs font-medium space-x-2">
+                            <span className="text-green-700">Pago: <strong>{formatCurrency(totalPago)}</strong></span>
+                            <span className="text-gray-400">|</span>
+                            <span className="text-amber-700">Pendente: <strong>{formatCurrency(saldoPendente)}</strong></span>
+                          </div>
+                        );
+                      })()}
+                    </div>
+
+                    <div className="grid grid-cols-12 gap-2 items-center">
+                      <div className="col-span-5">
+                        <input
+                          type="number"
+                          step="0.01"
+                          placeholder="Valor parcela (R$)"
+                          value={novaParcelaValor}
+                          onChange={(e) => setNovaParcelaValor(e.target.value)}
+                          className="w-full border rounded-lg px-3 py-1.5 text-xs outline-none bg-white focus:ring-1 focus:ring-brand-blue-light"
+                        />
+                      </div>
+                      <div className="col-span-5">
+                        <input
+                          type="date"
+                          value={novaParcelaData}
+                          onChange={(e) => setNovaParcelaData(e.target.value)}
+                          className="w-full border rounded-lg px-3 py-1.5 text-xs outline-none bg-white focus:ring-1 focus:ring-brand-blue-light"
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <button
+                          type="button"
+                          onClick={handleAddParcela}
+                          className="w-full bg-brand-green-dark hover:bg-green-900 text-white font-bold py-1.5 px-2 rounded-lg text-xs transition"
+                          title="Adicionar Parcela"
+                        >
+                          + Add
+                        </button>
+                      </div>
+                    </div>
+
+                    {pagamentos.length > 0 ? (
+                      <div className="space-y-1 mt-2 max-h-36 overflow-y-auto pr-1">
+                        {pagamentos.map((p) => (
+                          <div key={p.id} className="flex justify-between items-center bg-white px-3 py-1.5 rounded border border-gray-200 text-xs">
+                            <div>
+                              <span className="font-bold text-gray-800">{formatCurrency(p.valor)}</span>
+                              <span className="text-gray-500 text-[11px] ml-2">
+                                em {new Date(p.data_pagamento + 'T00:00:00').toLocaleDateString('pt-BR')}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveParcela(p.id)}
+                              className="text-red-500 hover:text-red-700 font-bold ml-2"
+                              title="Remover parcela"
+                            >
+                              ✕
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-[11px] text-gray-500 italic text-center py-1">
+                        Nenhum pagamento parcial registrado.
+                      </p>
+                    )}
                   </div>
                 </div>
 
@@ -522,7 +649,13 @@ export default function ProcessosPage() {
                   Ficha
                 </th>
                 <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
-                  Valor
+                  Valor Empenhado
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Total Pago
+                </th>
+                <th className="px-6 py-4 text-right text-xs font-bold text-gray-400 uppercase tracking-wider">
+                  Saldo Pendente
                 </th>
                 <th className="px-6 py-4 text-center text-xs font-bold text-gray-400 uppercase tracking-wider">
                   Status
@@ -535,68 +668,88 @@ export default function ProcessosPage() {
             <tbody className="divide-y divide-gray-100">
               {filteredProcessos.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="px-6 py-12 text-center text-gray-400 italic">
+                  <td colSpan={8} className="px-6 py-12 text-center text-gray-400 italic">
                     Nenhum processo encontrado com os filtros atuais.
                   </td>
                 </tr>
               ) : (
-                filteredProcessos.map((processo) => (
-                  <tr key={processo.id} className="hover:bg-blue-50/30 transition-colors group">
-                    <td className="px-6 py-4">
-                      <div className="text-sm font-bold text-brand-blue-dark">
-                        {processo.numero}
-                      </div>
-                      <div className="text-[10px] text-gray-400 font-medium uppercase">
-                        Emitido em {new Date(processo.data_emissao).toLocaleDateString('pt-BR')}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-sm text-gray-700 font-medium line-clamp-1" title={processo.objeto}>
-                        {processo.objeto}
-                      </div>
-                      <div className="text-xs text-gray-500">
-                        {processo.fornecedor}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4">
-                      <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded inline-block">
-                        {fichaMap.get(processo.ficha_id) || processo.ficha_id}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-right">
-                      <div className="text-sm font-black text-brand-blue-dark">
-                        {formatCurrency(processo.valor)}
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 text-center">
-                      <span
-                        className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getStatusColor(
-                          processo.status
-                        )}`}
-                      >
-                        {processo.status}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 text-right text-sm font-medium">
-                      <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
-                        <button
-                          onClick={() => handleEdit(processo)}
-                          className="text-brand-blue-light hover:text-brand-blue-dark flex items-center"
-                          title="Editar Processo"
+                filteredProcessos.map((processo) => {
+                  const totalPago = (processo.pagamentos || []).reduce((sum, p) => sum + (p.valor || 0), 0);
+                  const saldoPendente = Math.max(0, processo.valor - totalPago);
+
+                  return (
+                    <tr key={processo.id} className="hover:bg-blue-50/30 transition-colors group">
+                      <td className="px-6 py-4">
+                        <div className="text-sm font-bold text-brand-blue-dark">
+                          {processo.numero}
+                        </div>
+                        <div className="text-[10px] text-gray-400 font-medium uppercase">
+                          Emitido em {new Date(processo.data_emissao).toLocaleDateString('pt-BR')}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-sm text-gray-700 font-medium line-clamp-1" title={processo.objeto}>
+                          {processo.objeto}
+                        </div>
+                        <div className="text-xs text-gray-500">
+                          {processo.fornecedor}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4">
+                        <div className="text-xs text-gray-600 bg-gray-100 px-2 py-1 rounded inline-block">
+                          {fichaMap.get(processo.ficha_id) || processo.ficha_id}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="text-sm font-black text-brand-blue-dark">
+                          {formatCurrency(processo.valor)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className="text-sm font-bold text-green-700">
+                          {formatCurrency(totalPago)}
+                        </div>
+                        {processo.pagamentos && processo.pagamentos.length > 0 && (
+                          <div className="text-[10px] text-gray-400 font-medium">
+                            {processo.pagamentos.length} parcela(s)
+                          </div>
+                        )}
+                      </td>
+                      <td className="px-6 py-4 text-right">
+                        <div className={`text-sm font-bold ${saldoPendente > 0 ? 'text-amber-700' : 'text-gray-400'}`}>
+                          {formatCurrency(saldoPendente)}
+                        </div>
+                      </td>
+                      <td className="px-6 py-4 text-center">
+                        <span
+                          className={`inline-flex items-center px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wide border ${getStatusColor(
+                            processo.status
+                          )}`}
                         >
-                          <span className="mr-1">✏️</span> Editar
-                        </button>
-                        <button
-                          onClick={() => handleDelete(processo.id)}
-                          className="text-red-500 hover:text-red-700 flex items-center"
-                          title="Excluir Processo"
-                        >
-                          <span className="mr-1">🗑️</span>
-                        </button>
-                      </div>
-                    </td>
-                  </tr>
-                ))
+                          {processo.status}
+                        </span>
+                      </td>
+                      <td className="px-6 py-4 text-right text-sm font-medium">
+                        <div className="flex justify-end space-x-3 opacity-0 group-hover:opacity-100 transition-opacity">
+                          <button
+                            onClick={() => handleEdit(processo)}
+                            className="text-brand-blue-light hover:text-brand-blue-dark flex items-center"
+                            title="Editar Processo"
+                          >
+                            <span className="mr-1">✏️</span> Editar
+                          </button>
+                          <button
+                            onClick={() => handleDelete(processo.id)}
+                            className="text-red-500 hover:text-red-700 flex items-center"
+                            title="Excluir Processo"
+                          >
+                            <span className="mr-1">🗑️</span>
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                })
               )}
             </tbody>
           </table>

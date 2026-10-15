@@ -222,7 +222,7 @@ export async function getAllFichas(): Promise<Ficha[]> {
 }
 
 export async function getAllProcessos(): Promise<Processo[]> {
-  const data = await getSheetData('Processos!A:M');
+  const data = await getSheetData('Processos!A:N');
   
   if (data.length <= 1) return [];
 
@@ -237,6 +237,14 @@ export async function getAllProcessos(): Promise<Processo[]> {
         anexos = [];
       }
 
+      let pagamentos = [];
+      try {
+        pagamentos = row[13] ? JSON.parse(row[13]) : [];
+      } catch (e) {
+        console.error(`Erro ao parsear pagamentos para o processo ${row[0]}:`, e);
+        pagamentos = [];
+      }
+
       return {
         id: row[0] || '',
         numero: row[1] || '',
@@ -249,6 +257,7 @@ export async function getAllProcessos(): Promise<Processo[]> {
         data_pagamento: row[8] || '',
         responsavel: row[9] || '',
         anexos,
+        pagamentos,
         criado_em: row[11] || '',
         atualizado_em: row[12] || '',
       };
@@ -275,7 +284,7 @@ export async function findFichaRow(id: string): Promise<number | null> {
 
 export async function findProcessoRow(id: string): Promise<number | null> {
   // Otimização: usa o range completo que já deve estar em cache
-  const data = await getSheetData('Processos!A:M');
+  const data = await getSheetData('Processos!A:N');
   const rowIndex = data.findIndex((row: string[]) => row[0] === id);
   // Pula o cabeçalho (index 0)
   return rowIndex > 0 ? rowIndex + 1 : null;
