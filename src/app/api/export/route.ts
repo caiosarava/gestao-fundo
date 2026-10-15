@@ -60,10 +60,12 @@ export async function GET(request: NextRequest) {
     for (const p of filtered) {
       const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
       const saldoPendente = Math.max(0, p.valor - pago);
-      restosAPagar += saldoPendente;
 
       if (p.status === 'empenhado') {
         totalEmpenhados += p.valor;
+        restosAPagar += p.valor;
+      } else if (p.status === 'liquidado_parcial') {
+        restosAPagar += saldoPendente;
       } else if (p.status === 'liquidado') {
         totalLiquidados += pago > 0 ? pago : p.valor;
       }
