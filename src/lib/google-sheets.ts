@@ -252,7 +252,7 @@ export async function getAllProcessos(): Promise<Processo[]> {
         fornecedor: row[3] || '',
         valor: parseNumber(row[4]),
         ficha_id: row[5] || '',
-        status: (row[6] as 'aprovado' | 'empenhado' | 'liquidado') || 'aprovado',
+        status: (row[6] as 'empenhado' | 'liquidado_parcial' | 'liquidado') || 'empenhado',
         data_emissao: row[7] || '',
         data_pagamento: row[8] || '',
         responsavel: row[9] || '',

@@ -60,16 +60,13 @@ export async function GET() {
     const saldoRow = configData.find((row: string[]) => row[0] === 'saldo_conta_inicial');
     const saldoConta = saldoRow ? parseNumber(saldoRow[1]) : 0;
 
-    let totalAprovados = 0;
     let totalEmpenhados = 0;
     let totalLiquidadosParcial = 0;
     let totalSaldoPendenteParcial = 0;
     let totalLiquidados = 0;
 
     for (const p of processos) {
-      if (p.status === 'aprovado') {
-        totalAprovados += p.valor;
-      } else if (p.status === 'empenhado') {
+      if (p.status === 'empenhado') {
         totalEmpenhados += p.valor;
       } else if (p.status === 'liquidado_parcial') {
         const pago = (p.pagamentos || []).reduce((sum, item) => sum + (item.valor || 0), 0);
@@ -80,13 +77,12 @@ export async function GET() {
       }
     }
 
-    const restosAPagar = totalAprovados + totalEmpenhados + totalSaldoPendenteParcial;
+    const restosAPagar = totalEmpenhados + totalSaldoPendenteParcial;
 
-    const saldoDisponivel = saldoConta - (totalAprovados + totalEmpenhados + totalLiquidadosParcial + totalSaldoPendenteParcial + totalLiquidados);
+    const saldoDisponivel = saldoConta - (totalLiquidados + totalLiquidadosParcial);
 
     return NextResponse.json({
       saldo_conta: saldoConta,
-      total_aprovados: totalAprovados,
       total_empenhados: totalEmpenhados,
       total_liquidados_parcial: totalLiquidadosParcial,
       total_liquidados: totalLiquidados,
