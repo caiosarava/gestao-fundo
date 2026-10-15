@@ -91,6 +91,8 @@ export async function POST(request: NextRequest) {
 
     if (totalPago >= valor && valor > 0) {
       status = 'liquidado';
+    } else if (totalPago > 0 && totalPago < valor) {
+      status = 'liquidado_parcial';
     }
 
     const id = uuidv4();
@@ -218,6 +220,8 @@ export async function PUT(request: NextRequest) {
 
     if (totalPago >= novoValor && novoValor > 0) {
       status = 'liquidado';
+    } else if (totalPago > 0 && totalPago < novoValor) {
+      status = 'liquidado_parcial';
     }
 
     const novoStatus = status || processo.status;

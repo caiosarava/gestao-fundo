@@ -17,7 +17,7 @@ export default function ProcessosPage() {
     fornecedor: '',
     valor: '',
     ficha_id: '',
-    status: 'aprovado' as 'aprovado' | 'empenhado' | 'liquidado',
+    status: 'aprovado' as 'aprovado' | 'empenhado' | 'liquidado_parcial' | 'liquidado',
     data_emissao: '',
     data_pagamento: '',
     responsavel: '',
@@ -66,7 +66,12 @@ export default function ProcessosPage() {
       const method = editingProcesso ? 'PUT' : 'POST';
       const valorNumerico = parseFloat(formData.valor) || 0;
       const totalPago = pagamentos.reduce((acc, p) => acc + (p.valor || 0), 0);
-      const statusFinal = (totalPago >= valorNumerico && valorNumerico > 0) ? 'liquidado' : formData.status;
+      let statusFinal = formData.status;
+      if (totalPago >= valorNumerico && valorNumerico > 0) {
+        statusFinal = 'liquidado';
+      } else if (totalPago > 0 && totalPago < valorNumerico) {
+        statusFinal = 'liquidado_parcial';
+      }
 
       const body = {
         ...formData,
@@ -189,6 +194,8 @@ export default function ProcessosPage() {
     const totalPago = novosPagamentos.reduce((acc, p) => acc + p.valor, 0);
     if (totalPago >= totalEmpenhado && totalEmpenhado > 0) {
       setFormData(prev => ({ ...prev, status: 'liquidado' }));
+    } else if (totalPago > 0 && totalPago < totalEmpenhado) {
+      setFormData(prev => ({ ...prev, status: 'liquidado_parcial' }));
     }
   };
 
@@ -198,7 +205,11 @@ export default function ProcessosPage() {
 
     const totalEmpenhado = parseFloat(formData.valor) || 0;
     const totalPago = novosPagamentos.reduce((acc, p) => acc + p.valor, 0);
-    if (totalPago < totalEmpenhado && formData.status === 'liquidado') {
+    if (totalPago >= totalEmpenhado && totalEmpenhado > 0) {
+      setFormData(prev => ({ ...prev, status: 'liquidado' }));
+    } else if (totalPago > 0 && totalPago < totalEmpenhado) {
+      setFormData(prev => ({ ...prev, status: 'liquidado_parcial' }));
+    } else {
       setFormData(prev => ({ ...prev, status: 'empenhado' }));
     }
   };
@@ -228,10 +239,21 @@ export default function ProcessosPage() {
         return 'bg-green-100 text-brand-green-dark border-green-200';
       case 'empenhado':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'liquidado_parcial':
+        return 'bg-teal-100 text-teal-800 border-teal-200';
       case 'liquidado':
         return 'bg-blue-100 text-brand-blue-dark border-blue-200';
       default:
         return 'bg-gray-100 text-gray-800 border-gray-200';
+    }
+  };
+
+  const formatStatusLabel = (status: string) => {
+    switch (status) {
+      case 'liquidado_parcial':
+        return 'Liquidado Parcial';
+      default:
+        return status;
     }
   };
 
@@ -424,11 +446,12 @@ export default function ProcessosPage() {
                       <select
                         id="status"
                         value={formData.status}
-                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'aprovado' | 'empenhado' | 'liquidado' })}
+                        onChange={(e) => setFormData({ ...formData, status: e.target.value as 'aprovado' | 'empenhado' | 'liquidado_parcial' | 'liquidado' })}
                         className="w-full border rounded-lg px-3 py-2 focus:ring-2 focus:ring-brand-green-light outline-none"
                       >
                         <option value="aprovado">Aprovado</option>
                         <option value="empenhado">Empenhado</option>
+                        <option value="liquidado_parcial">Liquidado Parcial</option>
                         <option value="liquidado">Liquidado</option>
                       </select>
                     </div>
@@ -630,6 +653,7 @@ export default function ProcessosPage() {
           <option value="all">Todos</option>
           <option value="aprovado">Aprovados</option>
           <option value="empenhado">Empenhados</option>
+          <option value="liquidado_parcial">Liquidados Parcialmente</option>
           <option value="liquidado">Liquidados</option>
         </select>
       </div>
@@ -726,7 +750,7 @@ export default function ProcessosPage() {
                             processo.status
                           )}`}
                         >
-                          {processo.status}
+                          {formatStatusLabel(processo.status)}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-right text-sm font-medium">
